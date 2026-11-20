@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Entregas - Swapy Empleado</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #fff;
+            color: #333;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 { color: #2c3e50; font-size: 26px; margin-bottom: 8px; }
+        .header p { color: #7f8c8d; font-size: 13px; }
+        .print-btn {
+            display: block;
+            margin: 0 auto 24px;
+            background: #4a9fd4;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background: #f8f9fa; color: #555; text-transform: uppercase; font-size: 11px; }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #eaf3fb;
+            color: #2c6fa3;
+        }
+        @media print {
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+
+    <div class="header">
+        <h1>🚚 SWAPY - Reporte de Entregas (Empleado)</h1>
+        <p th:text="'Generado el ' + ${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}"></p>
+        <p style="margin-top:6px; font-size:12px; color:#95a5a6;"
+           th:if="${repEstado != '' or repFechaInicio != '' or repFechaFin != '' or repSoloMias}">
+            Filtros aplicados:
+            <span th:if="${repEstado != ''}" th:text="'Estado: ' + ${repEstado} + '  '"></span>
+            <span th:if="${repFechaInicio != '' or repFechaFin != ''}"
+                  th:text="'Fechas: ' + (${repFechaInicio} ?: '...') + ' a ' + (${repFechaFin} ?: '...') + '  '"></span>
+            <span th:if="${repSoloMias}">Solo mis entregas</span>
+        </p>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>#</th><th>Producto</th><th>Solicitante</th><th>Dirección de entrega</th><th>Empleado</th><th>Estado</th><th>Creado</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="r : ${reporte}">
+                <td th:text="'#' + ${r.idIntercambio}"></td>
+                <td th:text="${r.nombreProducto} ?: 'N/A'"></td>
+                <td th:text="${r.nombreSolicitante} ?: 'N/A'"></td>
+                <td th:text="${r.direccionEntrega}"></td>
+                <td th:text="${r.fkIdEmpleado} ?: 'Sin asignar'"></td>
+                <td><span class="badge" th:text="${r.estadoEntrega}"></span></td>
+                <td th:text="${r.creadoEn != null} ? ${#temporals.format(r.creadoEn, 'dd/MM/yyyy HH:mm')} : '—'"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(reporte)}"><td colspan="7">Sin resultados para el filtro aplicado.</td></tr>
+        </tbody>
+    </table>
+
+    <p style="text-align:center; color:#95a5a6; font-size:12px;">
+        Total de registros: <b th:text="${#lists.size(reporte)}">0</b>
+    </p>
+
+</body>
+</html>
