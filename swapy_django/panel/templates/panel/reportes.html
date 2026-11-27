@@ -1,0 +1,587 @@
+
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}Reportes | Swapy{% endblock %}
+
+{% block reportes_active %}active{% endblock %}
+
+{% block contenido %}
+
+<div class="section-header">
+    <div>
+        <span class="eyebrow">Análisis e información</span>
+        <h1>Reportes</h1>
+        <p>Consulta los indicadores y movimientos registrados en Swapy.</p>
+    </div>
+</div>
+
+<style>
+.reportes-section {
+    margin-top: 28px;
+}
+
+.reportes-section h2 {
+    font-size: 19px;
+    margin-bottom: 16px;
+}
+
+.reportes-filtros,
+.reportes-card,
+.reportes-chart,
+.reportes-tabla {
+    background: #fff;
+    border: 1px solid #e8eaf0;
+    border-radius: 13px;
+    padding: 20px;
+}
+
+.reportes-filtros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 15px;
+    align-items: end;
+}
+
+.reportes-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.reportes-campo label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+}
+
+.reportes-campo input,
+.reportes-campo select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #d9dce5;
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: white;
+}
+
+.reportes-boton {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 40px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.reportes-boton.secundario {
+    background: #eef2f7;
+    color: #333;
+}
+
+.reportes-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.reportes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 15px;
+}
+
+.reportes-card {
+    min-width: 0;
+}
+
+.reportes-card small {
+    display: block;
+    color: #687080;
+    margin-bottom: 9px;
+}
+
+.reportes-card strong {
+    font-size: 26px;
+    color: #202938;
+    overflow-wrap: anywhere;
+}
+
+.reportes-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.reportes-chart {
+    min-width: 0;
+}
+
+.reportes-chart canvas {
+    width: 100% !important;
+    max-height: 310px;
+}
+
+.reportes-tabla {
+    overflow-x: auto;
+}
+
+.reportes-tabla table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.reportes-tabla th,
+.reportes-tabla td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eceef2;
+    font-size: 13px;
+}
+
+.reportes-tabla th {
+    color: #555;
+    background: #f8fafc;
+}
+
+.reportes-vacio {
+    text-align: center !important;
+    color: #777;
+    padding: 22px !important;
+}
+
+.reportes-alerta {
+    padding: 12px 15px;
+    margin-top: 12px;
+    border-radius: 8px;
+    background: #fff4e5;
+    color: #8a4b08;
+}
+
+@media (max-width: 600px) {
+    .reportes-filtros {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<!-- FILTROS -->
+<section class="reportes-section">
+    <h2>Filtros de consulta</h2>
+
+    <form method="GET" class="reportes-filtros">
+
+        <div class="reportes-campo">
+            <label for="categoria">Categoría</label>
+            <select name="categoria" id="categoria">
+                <option value="0">Todas las categorías</option>
+                {% for categoria in categoriasDisponibles %}
+                    <option
+                        value="{{ categoria.id_categoria }}"
+                        {% if filtros.categoria == categoria.id_categoria %}selected{% endif %}
+                    >
+                        {{ categoria.n_categoria }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="reportes-campo">
+            <label for="rol">Rol de usuario</label>
+            <select name="rol" id="rol">
+                <option value="">Todos los roles</option>
+                {% for rol_item in rolesDisponibles %}
+                    <option
+                        value="{{ rol_item.rol }}"
+                        {% if filtros.rol == rol_item.rol %}selected{% endif %}
+                    >
+                        {{ rol_item.rol }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="reportes-campo">
+            <label for="fecha_inicio">Fecha inicial de solicitudes</label>
+            <input
+                type="date"
+                name="fecha_inicio"
+                id="fecha_inicio"
+                value="{{ filtros.fecha_inicio }}"
+            >
+        </div>
+
+        <div class="reportes-campo">
+            <label for="fecha_fin">Fecha final de solicitudes</label>
+            <input
+                type="date"
+                name="fecha_fin"
+                id="fecha_fin"
+                value="{{ filtros.fecha_fin }}"
+            >
+        </div>
+
+        <div>
+            <button type="submit" class="reportes-boton">
+                Aplicar filtros
+            </button>
+        </div>
+
+    </form>
+
+    <div class="reportes-acciones">
+        <a href="{% url 'panel_reportes' %}" class="reportes-boton secundario">
+            Limpiar filtros
+        </a>
+
+        <a
+            href="{% url 'panel_reportes_imprimir' %}?{{ request.GET.urlencode }}"
+            target="_blank"
+            class="reportes-boton"
+        >
+            Imprimir / Guardar PDF
+        </a>
+    </div>
+
+    {% for error in errores_filtros %}
+        <div class="reportes-alerta">{{ error }}</div>
+    {% endfor %}
+</section>
+
+<!-- INDICADORES GENERALES -->
+<section class="reportes-section">
+    <h2>Indicadores generales</h2>
+
+    <div class="reportes-grid">
+
+        <article class="reportes-card">
+            <small>Total de usuarios</small>
+            <strong>{{ totalUsuarios|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Usuarios activos</small>
+            <strong>{{ usuariosActivos|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Usuarios inactivos</small>
+            <strong>{{ usuariosInactivos|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Usuarios verificados</small>
+            <strong>{{ usuariosVerificados|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Total de productos</small>
+            <strong>{{ totalProductos|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Total de categorías</small>
+            <strong>{{ totalCategorias|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Productos con imagen</small>
+            <strong>{{ productosConImagen|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Productos sin imagen</small>
+            <strong>{{ productosSinImagen|default:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Valor estimado de productos</small>
+            <strong>${{ valorTotalProductos|default:0|floatformat:0 }}</strong>
+        </article>
+
+        <article class="reportes-card">
+            <small>Solicitudes encontradas</small>
+            <strong>{{ totalSolicitudesEntrega|default:0 }}</strong>
+        </article>
+
+    </div>
+</section>
+
+<!-- GRÁFICOS -->
+<section class="reportes-section">
+    <h2>Estadísticas</h2>
+
+    <div class="reportes-chart-grid">
+
+        <article class="reportes-chart">
+            <h3>Usuarios por rol</h3>
+            <canvas id="graficoRoles"></canvas>
+        </article>
+
+        <article class="reportes-chart">
+            <h3>Productos por categoría</h3>
+            <canvas id="graficoCategorias"></canvas>
+        </article>
+
+        <article class="reportes-chart">
+            <h3>Solicitudes por estado</h3>
+            <canvas id="graficoSolicitudes"></canvas>
+        </article>
+
+    </div>
+</section>
+
+<!-- TOP PRODUCTOS -->
+<section class="reportes-section">
+    <h2>10 productos de mayor valor</h2>
+
+    <div class="reportes-tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Usuario</th>
+                    <th>Valor estimado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in topProductos %}
+                <tr>
+                    <td>{{ producto.nombre_producto|default:"Sin nombre" }}</td>
+                    <td>{{ producto.n_categoria|default:"Sin categoría" }}</td>
+                    <td>{{ producto.username|default:"Sin usuario" }}</td>
+                    <td>${{ producto.valor_estimado|default:0|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="reportes-vacio">
+                        No hay productos para mostrar.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ÚLTIMOS PRODUCTOS -->
+<section class="reportes-section">
+    <h2>Últimos productos registrados</h2>
+
+    <div class="reportes-tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Usuario</th>
+                    <th>Valor estimado</th>
+                    <th>Imagen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in ultimosProductos %}
+                <tr>
+                    <td>{{ producto.nombre_producto|default:"Sin nombre" }}</td>
+                    <td>{{ producto.n_categoria|default:"Sin categoría" }}</td>
+                    <td>{{ producto.username|default:"Sin usuario" }}</td>
+                    <td>${{ producto.valor_estimado|default:0|floatformat:0 }}</td>
+                    <td>
+                        {% if producto.imagen %}Sí{% else %}No{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="reportes-vacio">
+                        No hay productos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ÚLTIMOS USUARIOS -->
+<section class="reportes-section">
+    <h2>Últimos usuarios registrados</h2>
+
+    <div class="reportes-tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Verificado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in ultimosUsuarios %}
+                <tr>
+                    <td>{{ usuario.id_usuario }}</td>
+                    <td>{{ usuario.username|default:"Sin nombre" }}</td>
+                    <td>{{ usuario.correo }}</td>
+                    <td>{{ usuario.rol|default:"Sin rol" }}</td>
+                    <td>{{ usuario.estado|default:"Sin estado" }}</td>
+                    <td>{{ usuario.verificado|default:"No" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="reportes-vacio">
+                        No hay usuarios registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- SOLICITUDES -->
+<section class="reportes-section">
+    <h2>Solicitudes de entrega</h2>
+
+    <div class="reportes-tabla">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Solicitante</th>
+                    <th>Estado</th>
+                    <th>Estado de entrega</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudesEntrega %}
+                <tr>
+                    <td>{{ solicitud.id_intercambio }}</td>
+                    <td>{{ solicitud.nombre_producto|default:"Sin producto" }}</td>
+                    <td>{{ solicitud.nombre_solicitante|default:"Sin solicitante" }}</td>
+                    <td>{{ solicitud.estado|default:"Sin estado" }}</td>
+                    <td>{{ solicitud.estado_entrega|default:"Sin estado" }}</td>
+                    <td>{{ solicitud.creado_en|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="reportes-vacio">
+                        No hay solicitudes en el periodo seleccionado.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- DATOS PARA LOS GRÁFICOS -->
+{{ usuariosPorRol|json_script:"datos-roles" }}
+{{ productosPorCategoria|json_script:"datos-categorias" }}
+{{ solicitudesPorEstado|json_script:"datos-solicitudes" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const leerDatos = function (id) {
+        const elemento = document.getElementById(id);
+
+        if (!elemento) {
+            return [];
+        }
+
+        try {
+            return JSON.parse(elemento.textContent);
+        } catch (error) {
+            console.error("No se pudieron leer los datos del gráfico:", id, error);
+            return [];
+        }
+    };
+
+    const roles = leerDatos("datos-roles");
+    const categorias = leerDatos("datos-categorias");
+    const solicitudes = leerDatos("datos-solicitudes");
+
+    if (typeof Chart === "undefined") {
+        console.error("No se pudo cargar Chart.js.");
+        return;
+    }
+
+    new Chart(document.getElementById("graficoRoles"), {
+        type: "doughnut",
+        data: {
+            labels: roles.map(item => item.rol),
+            datasets: [{
+                data: roles.map(item => Number(item.total))
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("graficoCategorias"), {
+        type: "bar",
+        data: {
+            labels: categorias.map(item => item.n_categoria),
+            datasets: [{
+                label: "Productos",
+                data: categorias.map(item => Number(item.total))
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+    const estados = Object.keys(solicitudes);
+    const cantidades = Object.values(solicitudes);
+
+    new Chart(document.getElementById("graficoSolicitudes"), {
+        type: "pie",
+        data: {
+            labels: estados,
+            datasets: [{
+                data: cantidades.map(Number)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+{% endblock %}

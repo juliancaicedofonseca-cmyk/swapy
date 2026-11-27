@@ -1,0 +1,274 @@
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}
+Usuarios Premium | Swapy
+{% endblock %}
+
+{% block premium_active %}active{% endblock %}
+
+{% block estilos %}
+<style>
+.premium-page { width: 100%; }
+
+.premium-page .encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.premium-page .encabezado h1 { margin: 0; color: #173b35; font-size: 25px; }
+.premium-page .encabezado p { margin: 7px 0 0; color: #71817d; font-size: 14px; }
+
+.premium-page .resumenes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.premium-page .resumen {
+    background: #ffffff;
+    border: 1px solid #e5eeeb;
+    border-radius: 14px;
+    padding: 18px;
+}
+
+.premium-page .resumen span { display: block; color: #71817d; font-size: 13px; }
+.premium-page .resumen strong { display: block; margin-top: 8px; color: #176b58; font-size: 24px; }
+
+.premium-page .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #e5eeeb;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 22px;
+}
+
+.premium-page .filtros label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #35534b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.premium-page .filtros select {
+    min-width: 190px;
+    padding: 9px 10px;
+    border: 1px solid #d6e2de;
+    border-radius: 9px;
+    font: inherit;
+    font-weight: 400;
+    color: #40534d;
+    background: #fff;
+}
+
+.premium-page .btn {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.premium-page .btn-primario { background: #176b58; color: #fff; }
+.premium-page .btn-secundario { background: #edf5f1; color: #26745c; }
+.premium-page .btn-pdf { background: #c0392b; color: #fff; }
+
+.premium-page .filtro-activo {
+    margin: -8px 0 16px;
+    color: #71817d;
+    font-size: 13px;
+}
+
+.premium-page .tabla-contenedor {
+    background: #ffffff;
+    border: 1px solid #e5eeeb;
+    border-radius: 14px;
+    overflow-x: auto;
+}
+
+.premium-page table { width: 100%; min-width: 1000px; border-collapse: collapse; }
+
+.premium-page th {
+    background: #f3f8f6;
+    color: #35534b;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    padding: 15px 13px;
+    white-space: nowrap;
+}
+
+.premium-page td {
+    padding: 14px 13px;
+    border-top: 1px solid #edf1ef;
+    color: #40534d;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.premium-page .dato-secundario { display: block; color: #899590; font-size: 11px; margin-top: 5px; }
+
+.premium-page .plan {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #fff4d6;
+    color: #8a6100;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.premium-page .estado {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.premium-page .estado-vigente { background: #edf5f1; color: #26745c; }
+.premium-page .estado-vencido { background: #fbeaea; color: #a33a3a; }
+
+.premium-page .vacio { text-align: center; padding: 45px 20px; color: #81908a; }
+.premium-page .vacio strong { display: block; color: #40534d; margin-bottom: 8px; font-size: 16px; }
+</style>
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="premium-page">
+
+    <div class="encabezado">
+        <div>
+            <h1>⭐ Usuarios Premium</h1>
+            <p>Pagos premium aprobados, con el plan que compró cada usuario.</p>
+        </div>
+
+        <a class="btn btn-pdf"
+           href="{% url 'panel_premium_imprimir' %}{% if querystring %}?{{ querystring }}{% endif %}"
+           target="_blank">
+            📄 Generar PDF de esta consulta
+        </a>
+    </div>
+
+    <div class="resumenes">
+        <div class="resumen"><span>Usuarios</span><strong>{{ total_usuarios }}</strong></div>
+        <div class="resumen"><span>Pagos</span><strong>{{ total_pagos }}</strong></div>
+        {% for plan, cantidad in por_plan.items %}
+        <div class="resumen"><span>Plan {{ plan }}</span><strong>{{ cantidad }}</strong></div>
+        {% endfor %}
+        <div class="resumen"><span>Total recaudado</span><strong>${{ total_recaudado }}</strong></div>
+    </div>
+
+    <form class="filtros" method="get">
+        <label>
+            Plan pagado
+            <select name="plan">
+                <option value="">Todos los planes</option>
+                {% for plan in planes %}
+                <option value="{{ plan }}" {% if plan == filtro_plan %}selected{% endif %}>{{ plan }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Tiene productos en la categoría
+            <select name="categoria">
+                <option value="">Todas las categorías</option>
+                {% for categoria in categorias %}
+                <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == filtro_categoria %}selected{% endif %}>
+                    {{ categoria.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Suscripción
+            <select name="estado">
+                <option value="">Todas</option>
+                <option value="vigentes" {% if filtro_estado == "vigentes" %}selected{% endif %}>Vigentes</option>
+                <option value="vencidos" {% if filtro_estado == "vencidos" %}selected{% endif %}>Vencidas</option>
+            </select>
+        </label>
+
+        <button type="submit" class="btn btn-primario">Filtrar</button>
+        <a href="{% url 'panel_premium' %}" class="btn btn-secundario">Limpiar</a>
+    </form>
+
+    <p class="filtro-activo">Mostrando: <strong>{{ filtros_texto }}</strong></p>
+
+    <div class="tabla-contenedor">
+
+        {% if pagos %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Plan pagado</th>
+                    <th>Monto</th>
+                    <th>Fecha de pago</th>
+                    <th>Referencia</th>
+                    <th>Suscripción actual</th>
+                    <th>Categorías de sus productos</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td>
+                        <strong>{{ pago.nombre }}</strong>
+                        <span class="dato-secundario">{{ pago.correo }}</span>
+                        {% if pago.telefono %}<span class="dato-secundario">{{ pago.telefono }}</span>{% endif %}
+                    </td>
+                    <td><span class="plan">{{ pago.plan }}</span></td>
+                    <td>${{ pago.monto_texto }} COP</td>
+                    <td>{{ pago.creado_en|date:"d/m/Y H:i" }}</td>
+                    <td>{{ pago.referencia }}</td>
+                    <td>
+                        <span class="estado {% if pago.vigente %}estado-vigente{% else %}estado-vencido{% endif %}">
+                            {{ pago.estado_texto }}
+                        </span>
+                        {% if pago.fecha_fin %}
+                        <span class="dato-secundario">Vence: {{ pago.fecha_fin|date:"d/m/Y" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ pago.categorias_productos|default:"Sin productos activos" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+
+        <div class="vacio">
+            <strong>No hay pagos premium para esta consulta.</strong>
+            Cambia los filtros o pulsa “Limpiar”.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

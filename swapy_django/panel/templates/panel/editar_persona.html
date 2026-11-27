@@ -1,0 +1,552 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar persona | Swapy</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'panel/admin.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: var(--paper-soft);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .admin-wrapper {
+            display: block !important;
+            width: 100% !important;
+            min-height: 100vh;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        main.main-content-admin.editar-container {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 45px 24px !important;
+            box-sizing: border-box !important;
+        }
+
+        .editar-card {
+            display: block !important;
+            width: 100% !important;
+            max-width: 850px !important;
+            min-width: 0 !important;
+            margin: 0 auto !important;
+            padding: 35px;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-sizing: border-box;
+        }
+
+        .editar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 22px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .editar-header h1 {
+            margin: 0;
+            font-family: 'Syne', sans-serif;
+            font-size: 27px;
+            color: var(--ink);
+        }
+
+        .editar-subtitulo {
+            margin-top: 7px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .cerrar {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 30px;
+            font-weight: 600;
+        }
+
+        .cerrar:hover {
+            color: var(--ink);
+        }
+
+        .editar-form {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .grupo {
+            width: 100%;
+            min-width: 0;
+            margin-bottom: 20px;
+        }
+
+        .grupo label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .grupo input,
+        .grupo select {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: 49px;
+            padding: 0 15px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper-soft);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .grupo input:focus,
+        .grupo select:focus {
+            border-color: var(--ink-soft);
+            background: white;
+        }
+
+        .grupo input[readonly] {
+            background: #edf0eb;
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .dos-columnas {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 20px;
+            width: 100%;
+        }
+
+        .seccion-formulario {
+            width: 100%;
+            margin-top: 28px;
+            padding-top: 22px;
+            border-top: 1px solid var(--line);
+        }
+
+        .seccion-formulario h2 {
+            margin: 0 0 7px;
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            color: var(--ink);
+        }
+
+        .seccion-formulario > p {
+            margin: 0 0 22px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .ayuda {
+            display: block;
+            margin-top: 7px;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .mensaje-error {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            border-radius: var(--radius-sm);
+            background: #fff0ed;
+            color: #a33c2c;
+            border: 1px solid #e8b8ae;
+            font-size: 14px;
+        }
+
+        .acciones-formulario {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .btn-guardar {
+            flex: 1;
+            min-height: 52px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--ink);
+            color: white;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-guardar:hover {
+            background: var(--ink-soft);
+        }
+
+        .btn-guardar:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .btn-cancelar {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 52px;
+            padding: 0 25px;
+            border-radius: var(--radius-sm);
+            background: var(--paper-soft);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancelar:hover {
+            background: #e8ece5;
+        }
+
+        @media (max-width: 700px) {
+            main.main-content-admin.editar-container {
+                padding: 20px 12px !important;
+            }
+
+            .editar-card {
+                padding: 22px 17px;
+            }
+
+            .dos-columnas {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .acciones-formulario {
+                flex-direction: column;
+            }
+
+            .btn-guardar,
+            .btn-cancelar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <main class="main-content-admin editar-container">
+
+        <div class="editar-card">
+
+            <!-- ENCABEZADO -->
+            <div class="editar-header">
+
+                <div>
+                    <h1>Editar persona</h1>
+
+                    <div class="editar-subtitulo">
+                        Modifica la información de la persona registrada.
+                    </div>
+                </div>
+
+                <a
+                    href="{% url 'panel_personas' %}"
+                    class="cerrar"
+                    title="Volver"
+                >
+                    ×
+                </a>
+
+            </div>
+
+            <!-- ERROR -->
+            {% if error %}
+                <div class="mensaje-error">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" class="editar-form">
+
+                {% csrf_token %}
+
+                <!-- DOCUMENTO -->
+                <div class="dos-columnas">
+
+                    <div class="grupo">
+                        <label>Tipo de documento</label>
+
+                        <input
+                            type="text"
+                            value="{{ usuario.pkfk_id_doc.tipo_doc }}"
+                            readonly
+                        >
+                    </div>
+
+                    <div class="grupo">
+                        <label>Número de documento</label>
+
+                        <input
+                            type="text"
+                            value="{{ usuario.numero_documento|default:'N/A' }}"
+                            readonly
+                        >
+                    </div>
+
+                </div>
+
+                <!-- ROL -->
+                <div class="grupo">
+
+                    <label>Rol</label>
+
+                    <input
+                        type="text"
+                        value="{{ usuario.rol }}"
+                        readonly
+                    >
+
+                    <span class="ayuda">
+                        El rol asignado no se puede modificar.
+                    </span>
+
+                </div>
+
+                <!-- DATOS DEL EMPLEADO -->
+                {% if usuario.rol == "Empleado" %}
+
+                    <div class="seccion-formulario">
+
+                        <h2>Información personal</h2>
+
+                        <p>
+                            Actualiza los nombres y apellidos del empleado.
+                        </p>
+
+                        <div class="dos-columnas">
+
+                            <div class="grupo">
+                                <label>Primer nombre</label>
+
+                                <input
+                                    type="text"
+                                    name="primer_nombre"
+                                    maxlength="15"
+                                    value="{{ datos_persona.primer_nombre|default:'' }}"
+                                    required
+                                >
+                            </div>
+
+                            <div class="grupo">
+                                <label>Segundo nombre</label>
+
+                                <input
+                                    type="text"
+                                    name="segundo_nombre"
+                                    maxlength="15"
+                                    value="{{ datos_persona.segundo_nombre|default:'' }}"
+                                >
+                            </div>
+
+                            <div class="grupo">
+                                <label>Primer apellido</label>
+
+                                <input
+                                    type="text"
+                                    name="primer_apellido"
+                                    maxlength="12"
+                                    value="{{ datos_persona.primer_apellido|default:'' }}"
+                                    required
+                                >
+                            </div>
+
+                            <div class="grupo">
+                                <label>Segundo apellido</label>
+
+                                <input
+                                    type="text"
+                                    name="segundo_apellido"
+                                    maxlength="12"
+                                    value="{{ datos_persona.segundo_apellido|default:'' }}"
+                                >
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+                <!-- DATOS DE CUENTA -->
+                <div class="seccion-formulario">
+
+                    <h2>Datos de la cuenta</h2>
+
+                    <p>
+                        Información de acceso y contacto.
+                    </p>
+
+                    <div class="grupo">
+
+                        <label>Nombre de usuario</label>
+
+                        <input
+                            type="text"
+                            name="username"
+                            maxlength="50"
+                            value="{{ usuario.username|default:'' }}"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label>Correo electrónico</label>
+
+                        <input
+                            type="email"
+                            name="correo"
+                            maxlength="50"
+                            value="{{ usuario.correo }}"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label>Teléfono</label>
+
+                        <input
+                            type="text"
+                            name="telefono"
+                            maxlength="20"
+                            value="{{ usuario.telefono|default:'' }}"
+                        >
+
+                    </div>
+
+                    <div class="grupo">
+
+                        <label>Estado de la cuenta</label>
+
+                        <select name="estado" required>
+
+                            <option
+                                value="Activo"
+                                {% if usuario.estado == "Activo" %}selected{% endif %}
+                            >
+                                Activo
+                            </option>
+
+                            <option
+                                value="Inactivo"
+                                {% if usuario.estado == "Inactivo" %}selected{% endif %}
+                            >
+                                Inactivo
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <!-- CONTRASEÑA -->
+                <div class="seccion-formulario">
+
+                    <h2>Cambiar contraseña</h2>
+
+                    <p>
+                        Si no deseas cambiar la contraseña, deja el campo vacío.
+                    </p>
+
+                    <div class="grupo">
+
+                        <label>Nueva contraseña</label>
+
+                        <input
+                            type="password"
+                            name="contrasena"
+                            minlength="6"
+                            maxlength="72"
+                            autocomplete="new-password"
+                            placeholder="Escribe una nueva contraseña"
+                        >
+
+                        <span class="ayuda">
+                            Debe tener al menos 6 caracteres. La contraseña actual se conserva si no escribes una nueva.
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- BOTONES -->
+                <div class="acciones-formulario">
+
+                    <a
+                        href="{% url 'panel_personas' %}"
+                        class="btn-cancelar"
+                    >
+                        Cancelar
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn-guardar"
+                    >
+                        💾 Guardar cambios
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

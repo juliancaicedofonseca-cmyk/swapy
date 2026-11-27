@@ -1,0 +1,278 @@
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}
+Solicitudes de entrega | Swapy
+{% endblock %}
+
+{% block solicitudes_active %}active{% endblock %}
+
+{% block estilos %}
+<style>
+.solicitudes-page {
+    width: 100%;
+}
+
+.solicitudes-page .encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.solicitudes-page .encabezado h1 {
+    margin: 0;
+    color: #173b35;
+    font-size: 25px;
+}
+
+.solicitudes-page .encabezado p {
+    margin: 7px 0 0;
+    color: #71817d;
+    font-size: 14px;
+}
+
+.solicitudes-page .resumen {
+    background: #ffffff;
+    border: 1px solid #e5eeeb;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 22px;
+    max-width: 260px;
+}
+
+.solicitudes-page .resumen span {
+    display: block;
+    color: #71817d;
+    font-size: 13px;
+}
+
+.solicitudes-page .resumen strong {
+    display: block;
+    margin-top: 8px;
+    color: #176b58;
+    font-size: 28px;
+}
+
+.solicitudes-page .tabla-contenedor {
+    background: #ffffff;
+    border: 1px solid #e5eeeb;
+    border-radius: 14px;
+    overflow-x: auto;
+}
+
+.solicitudes-page table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+}
+
+.solicitudes-page th {
+    background: #f3f8f6;
+    color: #35534b;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    padding: 15px 13px;
+    white-space: nowrap;
+}
+
+.solicitudes-page td {
+    padding: 14px 13px;
+    border-top: 1px solid #edf1ef;
+    color: #40534d;
+    font-size: 13px;
+    vertical-align: top;
+}
+
+.solicitudes-page .dato-secundario {
+    display: block;
+    color: #899590;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.solicitudes-page .estado {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    background: #edf5f1;
+    color: #26745c;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.solicitudes-page .confirmado {
+    color: #16845e;
+    font-weight: 700;
+}
+
+.solicitudes-page .pendiente {
+    color: #bd8123;
+    font-weight: 700;
+}
+
+.solicitudes-page .vacio {
+    text-align: center;
+    padding: 45px 20px;
+    color: #81908a;
+}
+
+.solicitudes-page .vacio strong {
+    display: block;
+    color: #40534d;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+</style>
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="solicitudes-page">
+
+    <div class="encabezado">
+        <div>
+            <h1>Solicitudes de entrega</h1>
+            <p>
+                Consulta las solicitudes de intercambio registradas en Swapy.
+            </p>
+        </div>
+    </div>
+
+    <div class="resumen">
+        <span>Total de solicitudes registradas</span>
+        <strong>{{ total_solicitudes }}</strong>
+    </div>
+
+    <div class="tabla-contenedor">
+
+        {% if solicitudes_entrega %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Solicitante</th>
+                    <th>Propietario</th>
+                    <th>Estado</th>
+                    <th>Estado de entrega</th>
+                    <th>Dirección de recogida</th>
+                    <th>Dirección de entrega</th>
+                    <th>Confirmaciones</th>
+                    <th>Fecha de creación</th>
+                    <th>Fecha de entrega</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for solicitud in solicitudes_entrega %}
+
+                <tr>
+
+                    <td>
+                        #{{ solicitud.id_intercambio }}
+                    </td>
+
+                    <td>
+                        <strong>
+                            {{ solicitud.nombre_producto|default:"Sin producto" }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ solicitud.nombre_solicitante|default:"No disponible" }}
+                        <span class="dato-secundario">
+                            {{ solicitud.correo_solicitante|default:"Sin correo" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ solicitud.nombre_propietario|default:"No disponible" }}
+                        <span class="dato-secundario">
+                            {{ solicitud.correo_propietario|default:"Sin correo" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="estado">
+                            {{ solicitud.estado|default:"Sin estado" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="estado">
+                            {{ solicitud.estado_entrega|default:"Sin asignar" }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ solicitud.direccion_recogida|default:"No registrada" }}
+                    </td>
+
+                    <td>
+                        {{ solicitud.direccion|default:"No registrada" }}
+
+                        {% if solicitud.descripcion_lugar %}
+                        <span class="dato-secundario">
+                            {{ solicitud.descripcion_lugar }}
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div>
+                            Solicitante:
+
+                            {% if solicitud.confirmado_solicitante %}
+                                <span class="confirmado">Confirmado</span>
+                            {% else %}
+                                <span class="pendiente">Pendiente</span>
+                            {% endif %}
+                        </div>
+
+                        <div style="margin-top: 7px;">
+                            Propietario:
+
+                            {% if solicitud.confirmado_propietario %}
+                                <span class="confirmado">Confirmado</span>
+                            {% else %}
+                                <span class="pendiente">Pendiente</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td>
+                        {{ solicitud.creado_en|date:"d/m/Y H:i"|default:"No disponible" }}
+                    </td>
+
+                    <td>
+                        {{ solicitud.fecha_entrega|date:"d/m/Y H:i"|default:"Pendiente" }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+        {% else %}
+
+        <div class="vacio">
+            <strong>No hay solicitudes de entrega registradas.</strong>
+            Cuando existan solicitudes, aparecerán en esta tabla.
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

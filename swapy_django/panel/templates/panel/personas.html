@@ -1,0 +1,1510 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personas registradas | Swapy</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'panel/admin.css' %}">
+
+    <style>
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            min-width: 1100px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper);
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .search-form button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--ink);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .search-form button:hover {
+            background: var(--ink-soft);
+        }
+
+        .table-info {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .personas-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-importar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper);
+            color: var(--ink);
+            font-family: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .btn-importar:hover {
+            background: var(--paper-soft);
+            border-color: var(--ink-soft);
+        }
+
+        .mensaje-importacion {
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+
+        .mensaje-exito {
+            background: #e5f5eb;
+            color: #176b3a;
+            border: 1px solid #b8e2c6;
+        }
+
+        .mensaje-error {
+            background: #fff0ed;
+            color: #a33c2c;
+            border: 1px solid #e8b8ae;
+        }
+
+        .mensaje-advertencia {
+            background: #fff6e5;
+            color: #94621b;
+            border: 1px solid #ead8ad;
+        }
+
+        .acciones-usuario {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: nowrap;
+        }
+
+        .btn-accion {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--paper);
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 17px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-accion:hover {
+            background: var(--paper-soft);
+            border-color: var(--ink-soft);
+            transform: translateY(-2px);
+        }
+
+        .form-accion {
+            display: inline-flex;
+            margin: 0;
+        }
+
+        .btn-eliminar:hover {
+            background: #fff0ed;
+            border-color: #e8b8ae;
+        }
+
+        .btn-estado:hover {
+            background: #edf5ef;
+            border-color: #b8d8c1;
+        }
+
+        .sin-acciones {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        button.btn-accion {
+            font-family: inherit;
+        }
+
+        /* =================================
+           MODAL DE EDICIÓN
+        ================================= */
+
+        .modal-editar {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+            background: rgba(15, 25, 20, 0.68);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-editar.activo {
+            display: flex;
+        }
+
+        .modal-editar-contenido {
+            position: relative;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--paper);
+            border-radius: 18px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+            animation: modalEntrada 0.22s ease;
+        }
+
+        @keyframes modalEntrada {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-editar-cerrar {
+            position: sticky;
+            top: 12px;
+            float: right;
+            z-index: 10;
+            width: 38px;
+            height: 38px;
+            margin: 12px 12px -50px 0;
+            border: none;
+            border-radius: 50%;
+            background: #edf0eb;
+            color: var(--ink);
+            font-size: 25px;
+            cursor: pointer;
+        }
+
+        .modal-editar-cerrar:hover {
+            background: #dce4dc;
+        }
+
+        .modal-editar-cuerpo {
+            padding: 30px;
+        }
+
+        .modal-editar-cuerpo .editar-card {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 10px;
+            border: none;
+            box-shadow: none;
+            background: var(--paper);
+        }
+
+        .modal-editar-cuerpo .editar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 22px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-editar-cuerpo .editar-header h1 {
+            margin: 0;
+            font-size: 27px;
+            color: var(--ink);
+        }
+
+        .modal-editar-cuerpo .editar-subtitulo {
+            margin-top: 7px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .modal-editar-cuerpo .editar-header .cerrar {
+            display: none;
+        }
+
+        .modal-editar-cuerpo .editar-form {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .modal-editar-cuerpo .grupo {
+            width: 100%;
+            min-width: 0;
+            margin-bottom: 18px;
+        }
+
+        .modal-editar-cuerpo .grupo label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .modal-editar-cuerpo .grupo input,
+        .modal-editar-cuerpo .grupo select {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: 48px;
+            padding: 0 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper-soft);
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+        }
+
+        .modal-editar-cuerpo .grupo input:focus,
+        .modal-editar-cuerpo .grupo select:focus {
+            outline: none;
+            border-color: var(--ink-soft);
+            background: white;
+        }
+
+        .modal-editar-cuerpo .grupo input[readonly] {
+            background: #edf0eb;
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .modal-editar-cuerpo .dos-columnas {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 20px;
+            width: 100%;
+        }
+
+        .modal-editar-cuerpo .seccion-formulario {
+            width: 100%;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+        }
+
+        .modal-editar-cuerpo .seccion-formulario h2 {
+            margin: 0 0 7px;
+            font-size: 18px;
+            color: var(--ink);
+        }
+
+        .modal-editar-cuerpo .seccion-formulario > p {
+            margin: 0 0 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .modal-editar-cuerpo .ayuda {
+            display: block;
+            margin-top: 7px;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .modal-editar-cuerpo .mensaje-error {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            border-radius: var(--radius-sm);
+            background: #fff0ed;
+            color: #a33c2c;
+            border: 1px solid #e8b8ae;
+            font-size: 14px;
+        }
+
+        .modal-editar-cuerpo .acciones-formulario {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .modal-editar-cuerpo .btn-guardar {
+            flex: 1;
+            min-height: 50px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--ink);
+            color: white;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .modal-editar-cuerpo .btn-guardar:hover {
+            background: var(--ink-soft);
+        }
+
+        .modal-editar-cuerpo .btn-guardar:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .modal-editar-cuerpo .btn-cancelar {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 50px;
+            padding: 0 25px;
+            border-radius: var(--radius-sm);
+            background: var(--paper-soft);
+            color: var(--ink);
+            border: 1px solid var(--line);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .modal-editar-cuerpo .btn-cancelar:hover {
+            background: #e8ece5;
+        }
+
+        .modal-cargando {
+            padding: 65px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .modal-cargando button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            background: var(--ink);
+            color: white;
+            cursor: pointer;
+        }
+
+        body.modal-abierto {
+            overflow: hidden;
+        }
+
+        /* =================================
+           MODAL DE ELIMINACIÓN
+        ================================= */
+
+        .modal-eliminar {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: rgba(15, 25, 20, 0.72);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-eliminar.activo {
+            display: flex;
+        }
+
+        .modal-eliminar-contenido {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            padding: 32px;
+            border-radius: 18px;
+            background: var(--paper);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            animation: modalEntrada 0.22s ease;
+        }
+
+        .modal-eliminar-icono {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 65px;
+            height: 65px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #fff0ed;
+            font-size: 30px;
+        }
+
+        .modal-eliminar-contenido h2 {
+            margin: 0 0 10px;
+            text-align: center;
+            color: var(--ink);
+            font-size: 23px;
+        }
+
+        .modal-eliminar-descripcion {
+            margin: 0 0 22px;
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .modal-eliminar-datos {
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--paper-soft);
+        }
+
+        .modal-eliminar-datos p {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 8px 0;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-eliminar-datos strong {
+            color: var(--ink);
+        }
+
+        .modal-eliminar-datos span {
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .modal-eliminar-advertencia {
+            padding: 13px;
+            margin-bottom: 20px;
+            border: 1px solid #e8b8ae;
+            border-radius: 9px;
+            background: #fff0ed;
+            color: #a33c2c;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .modal-eliminar-grupo {
+            margin-bottom: 20px;
+        }
+
+        .modal-eliminar-grupo label {
+            display: block;
+            margin-bottom: 9px;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .modal-eliminar-grupo input {
+            width: 100%;
+            height: 48px;
+            padding: 0 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper-soft);
+            color: var(--ink);
+            font-family: inherit;
+            font-size: 15px;
+        }
+
+        .modal-eliminar-grupo input:focus {
+            outline: none;
+            border-color: #bd5547;
+            background: white;
+        }
+
+        .modal-eliminar-acciones {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-eliminar-acciones button {
+            flex: 1;
+            min-height: 48px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancelar-eliminacion {
+            background: var(--paper-soft);
+            color: var(--ink);
+            border: 1px solid var(--line) !important;
+        }
+
+        .btn-confirmar-eliminacion {
+            background: #b83d32;
+            color: white;
+        }
+
+        .btn-confirmar-eliminacion:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-confirmar-eliminacion:not(:disabled):hover {
+            background: #922d25;
+        }
+
+        @media (max-width: 700px) {
+            .modal-editar {
+                padding: 10px;
+            }
+
+            .modal-editar-contenido {
+                max-height: 95vh;
+            }
+
+            .modal-editar-cuerpo {
+                padding: 18px;
+            }
+
+            .modal-editar-cuerpo .editar-card {
+                padding: 5px;
+            }
+
+            .modal-editar-cuerpo .dos-columnas {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .modal-editar-cuerpo .acciones-formulario {
+                flex-direction: column;
+            }
+
+            .modal-editar-cuerpo .btn-guardar,
+            .modal-editar-cuerpo .btn-cancelar {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .section-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .personas-actions {
+                width: 100%;
+            }
+
+            .personas-actions a {
+                flex: 1;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .modal-eliminar-contenido {
+                padding: 22px;
+            }
+
+            .modal-eliminar-acciones {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+
+        <div class="brand-mark">
+            <div class="brand-wordmark">SWAPY<span>.</span></div>
+        </div>
+
+        <p class="role-tag">Panel de administración</p>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{% url 'panel_dashboard' %}" class="nav-item">
+                        📊 Inicio
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'panel_personas' %}" class="nav-item active">
+                        👥 Personas registradas
+                    </a>
+                </li>
+
+                <li>
+    <a href="{% url 'panel_preguntas' %}" class="nav-item">
+        ❓ Preguntas de usuarios
+    </a>
+</li>
+
+<li>
+    <a href="{% url 'panel_denuncias' %}" class="nav-item">
+        🚩 Denuncias
+    </a>
+</li>
+                <li>
+                    <span class="nav-item">📦 Solicitudes de entrega</span>
+                </li>
+
+                <li>
+                    <span class="nav-item">⭐ Usuarios Premium</span>
+                </li>
+
+                <li>
+                    <span class="nav-item">📈 Reportes</span>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{% url 'panel_logout' %}">
+                {% csrf_token %}
+
+                <button type="submit" class="sidebar-btn sidebar-btn-logout">
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="admin-main">
+
+        <header class="topbar">
+            <div class="topbar-right">
+                <div class="topbar-profile">
+
+                    <div class="topbar-avatar">
+                        {{ correo|first|upper }}
+                    </div>
+
+                    <div>
+                        <div class="topbar-profile-role">Administrador</div>
+                        <small>{{ correo }}</small>
+                    </div>
+
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content-admin">
+
+            <!-- ENCABEZADO -->
+            <div class="section-header">
+
+                <div>
+                    <span class="eyebrow">Gestión de usuarios</span>
+                    <h1>Personas registradas</h1>
+                </div>
+
+                <div class="personas-actions">
+
+                    <a href="{% url 'panel_importar_personas' %}" class="btn-importar">
+                        📥 Importar personas
+                    </a>
+
+                    <a href="{% url 'panel_crear_persona' %}" class="btn-primary">
+                        + Registrar persona
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- MENSAJES -->
+            {% if request.GET.creado %}
+                <div class="mensaje-importacion mensaje-exito">
+                    Persona registrada correctamente.
+                </div>
+            {% endif %}
+
+            {% if request.GET.importados %}
+                <div class="mensaje-importacion mensaje-exito">
+                    ¡Importación completada! Los registros fueron guardados correctamente.
+                </div>
+            {% endif %}
+
+            {% if request.GET.editado %}
+                <div class="mensaje-importacion mensaje-exito">
+                    ¡Los cambios de la persona se guardaron correctamente!
+                </div>
+            {% endif %}
+
+            {% if request.GET.activado %}
+                <div class="mensaje-importacion mensaje-exito">
+                    La cuenta se activó correctamente.
+                </div>
+            {% endif %}
+
+            {% if request.GET.desactivado %}
+                <div class="mensaje-importacion mensaje-exito">
+                    La cuenta se desactivó correctamente.
+                </div>
+            {% endif %}
+
+            {% if request.GET.eliminado %}
+                <div class="mensaje-importacion mensaje-exito">
+                    La persona fue eliminada correctamente.
+                </div>
+            {% endif %}
+
+            {% if request.GET.eliminacion_error %}
+                <div class="mensaje-importacion mensaje-error">
+                    No fue posible eliminar la persona. Puede tener otros registros relacionados en el sistema.
+                </div>
+            {% endif %}
+
+            {% if request.GET.no_puede_eliminarse %}
+                <div class="mensaje-importacion mensaje-advertencia">
+                    No puedes eliminar la cuenta con la que tienes abierta la sesión.
+                </div>
+            {% endif %}
+
+            {% if request.GET.no_puede_desactivarse %}
+                <div class="mensaje-importacion mensaje-advertencia">
+                    No puedes desactivar la cuenta con la que tienes abierta la sesión.
+                </div>
+            {% endif %}
+
+            {% if request.GET.no_encontrado %}
+                <div class="mensaje-importacion mensaje-error">
+                    No se encontró la persona solicitada.
+                </div>
+            {% endif %}
+
+            {% if request.GET.accion_no_permitida %}
+                <div class="mensaje-importacion mensaje-advertencia">
+                    Esta acción solo está disponible para Administradores y Empleados.
+                </div>
+            {% endif %}
+
+            {% if request.GET.estado_error %}
+                <div class="mensaje-importacion mensaje-error">
+                    No fue posible cambiar el estado de la cuenta.
+                </div>
+            {% endif %}
+
+            <!-- INFORMACIÓN -->
+            <div class="table-info">
+                Usuarios encontrados: {{ usuarios|length }}
+            </div>
+
+            <!-- TABLA -->
+            <section class="table-container">
+
+                <div class="table-toolbar">
+                    <form method="GET" class="search-form">
+
+                        <input
+                            type="text"
+                            name="buscar"
+                            placeholder="Buscar por nombre, correo, documento o rol..."
+                            value="{{ busqueda }}"
+                        >
+
+                        <button type="submit">Buscar</button>
+
+                    </form>
+                </div>
+
+                <table class="users-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo documento</th>
+                            <th>Número documento</th>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Verificado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for usuario in usuarios %}
+
+                        <tr>
+
+                            <td>{{ usuario.id_usuario }}</td>
+
+                            <td>
+                                {{ usuario.pkfk_id_doc.tipo_doc|default:"—" }}
+                            </td>
+
+                            <td>
+                                {{ usuario.numero_documento|default:"—" }}
+                            </td>
+
+                            <td>
+                                {{ usuario.username|default:usuario.nombre|default:"—" }}
+                            </td>
+
+                            <td>{{ usuario.correo }}</td>
+
+                            <!-- ROL -->
+                            <td>
+                                {% if usuario.rol|lower == "administrador" %}
+                                    <span class="badge badge-admin">
+                                        {{ usuario.rol }}
+                                    </span>
+                                {% elif usuario.rol|lower == "empleado" %}
+                                    <span class="badge badge-empleado">
+                                        {{ usuario.rol }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-cliente">
+                                        {{ usuario.rol|default:"Sin rol" }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- ESTADO -->
+                            <td>
+                                {% if usuario.estado|lower == "activo" %}
+                                    <span class="badge badge-activo">Activo</span>
+                                {% elif usuario.estado|lower == "inactivo" %}
+                                    <span class="badge badge-inactivo">Inactivo</span>
+                                {% else %}
+                                    <span class="badge badge-usuario">
+                                        {{ usuario.estado|default:"Sin estado" }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- VERIFICACIÓN -->
+                            <td>
+                                {% if usuario.verificado|upper == "SI" or usuario.verificado == "1" %}
+                                    <span class="badge badge-si">✓ Sí</span>
+                                {% else %}
+                                    <span class="badge badge-no">No</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- ACCIONES -->
+                            <td>
+
+                                <div class="acciones-usuario">
+
+                                    {% if usuario.rol|lower == "administrador" or usuario.rol|lower == "empleado" %}
+
+                                        <!-- EDITAR -->
+                                        <button
+                                            type="button"
+                                            class="btn-accion btn-abrir-edicion"
+                                            data-url="{% url 'panel_editar_persona' usuario.id_usuario %}"
+                                            title="Editar persona"
+                                            aria-label="Editar persona"
+                                        >
+                                            ✏️
+                                        </button>
+
+                                        <!-- ACTIVAR / DESACTIVAR -->
+                                        <form
+                                            method="POST"
+                                            action="{% url 'panel_cambiar_estado' usuario.id_usuario %}"
+                                            class="form-accion"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="btn-accion btn-estado"
+                                                title="{% if usuario.estado|lower == 'activo' %}Desactivar cuenta{% else %}Activar cuenta{% endif %}"
+                                            >
+                                                {% if usuario.estado|lower == "activo" %}
+                                                    🔴
+                                                {% else %}
+                                                    🟢
+                                                {% endif %}
+                                            </button>
+                                        </form>
+
+                                        <!-- ELIMINAR -->
+                                        <button
+                                            type="button"
+                                            class="btn-accion btn-eliminar btn-abrir-eliminacion"
+                                            data-url="{% url 'panel_eliminar_persona' usuario.id_usuario %}"
+                                            data-id="{{ usuario.id_usuario }}"
+                                            data-usuario="{{ usuario.username|default:usuario.nombre|default:'Sin usuario' }}"
+                                            data-correo="{{ usuario.correo|default:'Sin correo' }}"
+                                            data-rol="{{ usuario.rol|default:'Sin rol' }}"
+                                            title="Eliminar persona"
+                                            aria-label="Eliminar persona"
+                                        >
+                                            🗑️
+                                        </button>
+
+                                    {% else %}
+
+                                        <span class="sin-acciones">—</span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <div class="empty-icon">👥</div>
+                                    No se encontraron usuarios.
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- =================================
+     VENTANA FLOTANTE DE EDICIÓN
+================================= -->
+
+<div
+    class="modal-editar"
+    id="modalEditar"
+    aria-hidden="true"
+>
+
+    <div
+        class="modal-editar-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Editar persona"
+    >
+
+        <button
+            type="button"
+            class="modal-editar-cerrar"
+            id="cerrarModalEditar"
+            aria-label="Cerrar ventana"
+        >
+            ×
+        </button>
+
+        <div
+            class="modal-editar-cuerpo"
+            id="contenidoModalEditar"
+        >
+            <div class="modal-cargando">
+                Cargando formulario...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =================================
+     VENTANA FLOTANTE DE ELIMINACIÓN
+================================= -->
+
+<div
+    class="modal-eliminar"
+    id="modalEliminar"
+    aria-hidden="true"
+>
+
+    <div
+        class="modal-eliminar-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tituloModalEliminar"
+    >
+
+        <div class="modal-eliminar-icono">🗑️</div>
+
+        <h2 id="tituloModalEliminar">
+            Eliminar persona
+        </h2>
+
+        <p class="modal-eliminar-descripcion">
+            Estás a punto de eliminar permanentemente esta persona de Swapy.
+            Revisa los datos antes de continuar.
+        </p>
+
+        <div class="modal-eliminar-datos">
+
+            <p>
+                <strong>ID:</strong>
+                <span id="eliminarId">—</span>
+            </p>
+
+            <p>
+                <strong>Usuario:</strong>
+                <span id="eliminarUsuario">—</span>
+            </p>
+
+            <p>
+                <strong>Correo:</strong>
+                <span id="eliminarCorreo">—</span>
+            </p>
+
+            <p>
+                <strong>Rol:</strong>
+                <span id="eliminarRol">—</span>
+            </p>
+
+        </div>
+
+        <div class="modal-eliminar-advertencia">
+            <strong>Advertencia:</strong>
+            esta acción es permanente y no se puede deshacer.
+            Asegúrate de haber seleccionado a la persona correcta.
+        </div>
+
+        <form
+            method="POST"
+            id="formEliminarPersona"
+        >
+            {% csrf_token %}
+
+            <div class="modal-eliminar-grupo">
+
+                <label for="palabraEliminar">
+                    Escribe ELIMINAR para confirmar:
+                </label>
+
+                <input
+                    type="text"
+                    id="palabraEliminar"
+                    name="confirmacion"
+                    placeholder="Escribe ELIMINAR"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+            <div class="modal-eliminar-acciones">
+
+                <button
+                    type="button"
+                    class="btn-cancelar-eliminacion"
+                    id="cancelarEliminacion"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn-confirmar-eliminacion"
+                    id="confirmarEliminacion"
+                    disabled
+                >
+                    Eliminar definitivamente
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- =================================
+     JAVASCRIPT DE EDICIÓN
+================================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = document.getElementById("modalEditar");
+    const contenido = document.getElementById("contenidoModalEditar");
+    const cerrar = document.getElementById("cerrarModalEditar");
+
+    let urlEdicionActual = "";
+
+    // ABRIR MODAL
+    document.querySelectorAll(".btn-abrir-edicion").forEach(function (boton) {
+
+        boton.addEventListener("click", async function () {
+
+            urlEdicionActual = boton.dataset.url;
+
+            modal.classList.add("activo");
+            modal.setAttribute("aria-hidden", "false");
+
+            document.body.classList.add("modal-abierto");
+
+            contenido.innerHTML = `
+                <div class="modal-cargando">
+                    Cargando formulario...
+                </div>
+            `;
+
+            try {
+
+                const respuesta = await fetch(urlEdicionActual, {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                if (!respuesta.ok) {
+                    throw new Error("No fue posible cargar el formulario.");
+                }
+
+                const html = await respuesta.text();
+
+                const documento = new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
+
+                const formulario = documento.querySelector(".editar-card");
+
+                if (!formulario) {
+                    throw new Error("No se encontró el formulario de edición.");
+                }
+
+                mostrarFormulario(formulario);
+
+            } catch (error) {
+
+                contenido.innerHTML = `
+                    <div class="modal-cargando">
+                        No fue posible cargar el formulario.
+                        <br><br>
+                        <button type="button" id="reintentarEdicion">
+                            Intentar nuevamente
+                        </button>
+                    </div>
+                `;
+
+                document.getElementById("reintentarEdicion")
+                    .addEventListener("click", function () {
+                        boton.click();
+                    });
+
+            }
+
+        });
+
+    });
+
+    // INSERTAR Y CONFIGURAR EL FORMULARIO
+    function mostrarFormulario(formulario) {
+
+        contenido.innerHTML = "";
+        contenido.appendChild(formulario);
+
+        const form = contenido.querySelector(".editar-form");
+
+        if (!form) {
+            contenido.innerHTML = `
+                <div class="modal-cargando">
+                    No se encontró el formulario.
+                </div>
+            `;
+            return;
+        }
+
+        form.action = urlEdicionActual;
+
+        // ENVIAR FORMULARIO SIN SALIR DEL LISTADO
+        form.addEventListener("submit", async function (evento) {
+
+            evento.preventDefault();
+
+            const botonGuardar = form.querySelector(".btn-guardar");
+
+            botonGuardar.disabled = true;
+            botonGuardar.textContent = "Guardando cambios...";
+
+            try {
+
+                const datos = new FormData(form);
+
+                const respuesta = await fetch(urlEdicionActual, {
+                    method: "POST",
+                    body: datos,
+                    credentials: "same-origin",
+                    redirect: "follow",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                const html = await respuesta.text();
+
+                const documento = new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
+
+                const formularioActualizado =
+                    documento.querySelector(".editar-card");
+
+                if (!formularioActualizado) {
+
+                    if (respuesta.ok && respuesta.redirected) {
+                        window.location.href = respuesta.url;
+                        return;
+                    }
+
+                    throw new Error("No fue posible guardar los cambios.");
+                }
+
+                mostrarFormulario(formularioActualizado);
+
+            } catch (error) {
+
+                botonGuardar.disabled = false;
+                botonGuardar.textContent = "💾 Guardar cambios";
+
+                alert("Ocurrió un error al guardar. Inténtalo nuevamente.");
+
+            }
+
+        });
+
+        // CANCELAR
+        const botonCancelar = contenido.querySelector(".btn-cancelar");
+
+        if (botonCancelar) {
+            botonCancelar.addEventListener("click", function (evento) {
+                evento.preventDefault();
+                cerrarModal();
+            });
+        }
+
+        // CERRAR DESDE LA X DEL FORMULARIO
+        const enlaceCerrar = contenido.querySelector(".cerrar");
+
+        if (enlaceCerrar) {
+            enlaceCerrar.addEventListener("click", function (evento) {
+                evento.preventDefault();
+                cerrarModal();
+            });
+        }
+
+    }
+
+    // CERRAR MODAL DE EDICIÓN
+    function cerrarModal() {
+
+        modal.classList.remove("activo");
+        modal.setAttribute("aria-hidden", "true");
+
+        document.body.classList.remove("modal-abierto");
+
+        contenido.innerHTML = "";
+        urlEdicionActual = "";
+
+    }
+
+    cerrar.addEventListener("click", cerrarModal);
+
+    // CERRAR AL HACER CLIC FUERA
+    modal.addEventListener("click", function (evento) {
+
+        if (evento.target === modal) {
+            cerrarModal();
+        }
+
+    });
+
+    // CERRAR CON ESC
+    document.addEventListener("keydown", function (evento) {
+
+        if (
+            evento.key === "Escape" &&
+            modal.classList.contains("activo")
+        ) {
+            cerrarModal();
+        }
+
+    });
+
+});
+</script>
+
+<!-- =================================
+     JAVASCRIPT DE ELIMINACIÓN
+================================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = document.getElementById("modalEliminar");
+    const formulario = document.getElementById("formEliminarPersona");
+
+    const campoPalabra = document.getElementById("palabraEliminar");
+    const botonConfirmar = document.getElementById("confirmarEliminacion");
+    const botonCancelar = document.getElementById("cancelarEliminacion");
+
+    const campoId = document.getElementById("eliminarId");
+    const campoUsuario = document.getElementById("eliminarUsuario");
+    const campoCorreo = document.getElementById("eliminarCorreo");
+    const campoRol = document.getElementById("eliminarRol");
+
+    // ABRIR MODAL DE ELIMINACIÓN
+    document.querySelectorAll(".btn-abrir-eliminacion").forEach(function (boton) {
+
+        boton.addEventListener("click", function () {
+
+            campoId.textContent = boton.dataset.id;
+            campoUsuario.textContent = boton.dataset.usuario;
+            campoCorreo.textContent = boton.dataset.correo;
+            campoRol.textContent = boton.dataset.rol;
+
+            formulario.action = boton.dataset.url;
+
+            campoPalabra.value = "";
+            botonConfirmar.disabled = true;
+            botonConfirmar.textContent = "Eliminar definitivamente";
+
+            modal.classList.add("activo");
+            modal.setAttribute("aria-hidden", "false");
+
+            document.body.classList.add("modal-abierto");
+
+            campoPalabra.focus();
+
+        });
+
+    });
+
+    // VALIDAR PALABRA
+    campoPalabra.addEventListener("input", function () {
+
+        const palabra = campoPalabra.value.trim().toUpperCase();
+
+        botonConfirmar.disabled = palabra !== "ELIMINAR";
+
+    });
+
+    // VALIDAR ANTES DE ENVIAR
+    formulario.addEventListener("submit", function (evento) {
+
+        const palabra = campoPalabra.value.trim().toUpperCase();
+
+        if (palabra !== "ELIMINAR") {
+            evento.preventDefault();
+            botonConfirmar.disabled = true;
+            campoPalabra.focus();
+            return;
+        }
+
+        botonConfirmar.disabled = true;
+        botonConfirmar.textContent = "Eliminando...";
+
+    });
+
+    // CERRAR MODAL
+    function cerrarModalEliminar() {
+
+        modal.classList.remove("activo");
+        modal.setAttribute("aria-hidden", "true");
+
+        document.body.classList.remove("modal-abierto");
+
+        campoPalabra.value = "";
+        botonConfirmar.disabled = true;
+        botonConfirmar.textContent = "Eliminar definitivamente";
+
+        formulario.action = "";
+
+    }
+
+    botonCancelar.addEventListener("click", cerrarModalEliminar);
+
+    // CERRAR AL HACER CLIC FUERA
+    modal.addEventListener("click", function (evento) {
+
+        if (evento.target === modal) {
+            cerrarModalEliminar();
+        }
+
+    });
+
+    // CERRAR CON ESCAPE
+    document.addEventListener("keydown", function (evento) {
+
+        if (
+            evento.key === "Escape" &&
+            modal.classList.contains("activo")
+        ) {
+            cerrarModalEliminar();
+        }
+
+    });
+
+});
+</script>
+
+</body>
+</html>

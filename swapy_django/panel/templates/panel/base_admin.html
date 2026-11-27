@@ -1,0 +1,157 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block titulo %}Panel administrativo | Swapy{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'panel/admin.css' %}">
+
+    {% block estilos %}{% endblock %}
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+
+        <div class="brand-mark">
+            <div class="brand-wordmark">
+                SWAPY<span>.</span>
+            </div>
+        </div>
+
+        <p class="role-tag">Panel de administración</p>
+
+        <nav class="sidebar-nav">
+            <ul>
+
+                <!-- INICIO -->
+                <li>
+                    <a href="{% url 'panel_dashboard' %}"
+                       class="nav-item {% block inicio_active %}{% endblock %}">
+                        📊 Inicio
+                    </a>
+                </li>
+
+                <!-- PERSONAS REGISTRADAS -->
+                <li>
+                    <a href="{% url 'panel_personas' %}"
+                       class="nav-item {% block personas_active %}{% endblock %}">
+                        👥 Personas registradas
+                    </a>
+                </li>
+
+                <!-- PREGUNTAS -->
+                <li>
+                    <a href="{% url 'panel_preguntas' %}"
+                       class="nav-item {% block preguntas_active %}{% endblock %}">
+                        ❓ Preguntas de usuarios
+                    </a>
+                </li>
+
+                <!-- DENUNCIAS -->
+                <li>
+                    <a href="{% url 'panel_denuncias' %}"
+                       class="nav-item {% block denuncias_active %}{% endblock %}">
+                        🚩 Denuncias
+                    </a>
+                </li>
+
+                <!-- SOLICITUDES DE ENTREGA -->
+                <li>
+                    <a href="{% url 'panel_solicitudes' %}"
+                       class="nav-item {% block solicitudes_active %}{% endblock %}">
+                        📦 Solicitudes de entrega
+                    </a>
+                </li>
+
+                <!-- USUARIOS PREMIUM -->
+                <li>
+                    <a href="{% url 'panel_premium' %}"
+                       class="nav-item {% block premium_active %}{% endblock %}">
+                        ⭐ Usuarios Premium
+                    </a>
+                </li>
+
+                <!-- REPORTES -->
+                <li>
+                    <a href="{% url 'panel_reportes' %}"
+                       class="nav-item {% block reportes_active %}{% endblock %}">
+                        📈 Reportes
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+
+        <!-- CERRAR SESIÓN -->
+        <div class="sidebar-footer">
+
+            <form method="POST" action="{% url 'panel_logout' %}">
+                {% csrf_token %}
+
+                <button type="submit" class="sidebar-btn sidebar-btn-logout">
+                    Cerrar sesión
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="admin-main">
+
+        <!-- BARRA SUPERIOR -->
+        <header class="topbar">
+
+            <div class="topbar-right">
+
+                <div class="topbar-profile">
+
+                    <div class="topbar-avatar">
+                        {{ correo|first|upper }}
+                    </div>
+
+                    <div>
+                        <div class="topbar-profile-role">
+                            Administrador
+                        </div>
+
+                        <small>{{ correo }}</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- CONTENIDO DE CADA SECCIÓN -->
+        <main class="main-content-admin">
+
+            {% block contenido %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+</div>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

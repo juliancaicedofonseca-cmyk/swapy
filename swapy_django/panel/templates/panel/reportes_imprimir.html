@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reporte administrativo | Swapy</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #222;
+            margin: 30px;
+            background: #fff;
+        }
+
+        .encabezado {
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 18px;
+            margin-bottom: 25px;
+        }
+
+        .encabezado h1 {
+            margin: 0 0 8px;
+            color: #1e3a8a;
+        }
+
+        .encabezado p {
+            margin: 4px 0;
+            color: #555;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 16px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .seccion {
+            margin-top: 28px;
+            page-break-inside: avoid;
+        }
+
+        .seccion h2 {
+            font-size: 18px;
+            color: #1e3a8a;
+            border-bottom: 1px solid #dbeafe;
+            padding-bottom: 8px;
+        }
+
+        .indicadores {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .indicador {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .indicador span {
+            display: block;
+            color: #555;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .indicador strong {
+            font-size: 21px;
+        }
+
+        .tabla-contenedor {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 9px;
+            text-align: left;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+
+        .vacio {
+            text-align: center;
+            color: #777;
+            padding: 18px;
+        }
+
+        .pie {
+            margin-top: 35px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 11px;
+            color: #777;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                margin: 12mm;
+            }
+
+            .acciones {
+                display: none;
+            }
+
+            .seccion {
+                page-break-inside: avoid;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tr {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .indicadores {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="encabezado">
+    <h1>SWAPY</h1>
+    <h2>Reporte administrativo</h2>
+    <p>Generado por el panel administrativo.</p>
+    <p>Fecha de generación: {% now "d/m/Y H:i" %}</p>
+</header>
+
+<div class="acciones">
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+    <button onclick="window.close()">Cerrar</button>
+</div>
+
+<!-- INDICADORES -->
+<section class="seccion">
+    <h2>Indicadores generales</h2>
+
+    <div class="indicadores">
+
+        <div class="indicador">
+            <span>Total de usuarios</span>
+            <strong>{{ totalUsuarios|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Usuarios activos</span>
+            <strong>{{ usuariosActivos|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Usuarios inactivos</span>
+            <strong>{{ usuariosInactivos|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Usuarios verificados</span>
+            <strong>{{ usuariosVerificados|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Total de productos</span>
+            <strong>{{ totalProductos|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Total de categorías</span>
+            <strong>{{ totalCategorias|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Productos con imagen</span>
+            <strong>{{ productosConImagen|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Productos sin imagen</span>
+            <strong>{{ productosSinImagen|default:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Valor estimado de productos</span>
+            <strong>${{ valorTotalProductos|default:0|floatformat:0 }}</strong>
+        </div>
+
+        <div class="indicador">
+            <span>Solicitudes encontradas</span>
+            <strong>{{ totalSolicitudesEntrega|default:0 }}</strong>
+        </div>
+
+    </div>
+</section>
+
+<!-- FILTROS APLICADOS -->
+<section class="seccion">
+    <h2>Filtros aplicados</h2>
+
+    <p>
+        <strong>Categoría:</strong>
+ {% if filtros.categoria %}
+    ID de categoría: {{ filtros.categoria }}
+{% else %}
+    Todas
+{% endif %}
+
+    <p>
+        <strong>Rol:</strong>
+        {{ filtros.rol|default:"Todos" }}
+    </p>
+
+    <p>
+        <strong>Fecha inicial:</strong>
+        {{ filtros.fecha_inicio|default:"Sin límite" }}
+    </p>
+
+    <p>
+        <strong>Fecha final:</strong>
+        {{ filtros.fecha_fin|default:"Sin límite" }}
+    </p>
+</section>
+
+<!-- USUARIOS POR ROL -->
+<section class="seccion">
+    <h2>Usuarios por rol</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rol</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in usuariosPorRol %}
+                <tr>
+                    <td>{{ item.rol }}</td>
+                    <td>{{ item.total }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="vacio">No hay datos disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- PRODUCTOS POR CATEGORÍA -->
+<section class="seccion">
+    <h2>Productos por categoría</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>Categoría</th>
+                    <th>Total de productos</th>
+                    <th>Valor estimado total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in productosPorCategoria %}
+                <tr>
+                    <td>{{ item.n_categoria }}</td>
+                    <td>{{ item.total }}</td>
+                    <td>${{ item.valor_total|default:0|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="vacio">No hay categorías disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- TOP PRODUCTOS -->
+<section class="seccion">
+    <h2>10 productos de mayor valor</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Usuario</th>
+                    <th>Valor estimado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in topProductos %}
+                <tr>
+                    <td>{{ producto.nombre_producto|default:"Sin nombre" }}</td>
+                    <td>{{ producto.n_categoria|default:"Sin categoría" }}</td>
+                    <td>{{ producto.username|default:"Sin usuario" }}</td>
+                    <td>${{ producto.valor_estimado|default:0|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="vacio">No hay productos disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ÚLTIMOS PRODUCTOS -->
+<section class="seccion">
+    <h2>Últimos productos registrados</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Usuario</th>
+                    <th>Valor estimado</th>
+                    <th>Imagen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in ultimosProductos %}
+                <tr>
+                    <td>{{ producto.nombre_producto|default:"Sin nombre" }}</td>
+                    <td>{{ producto.n_categoria|default:"Sin categoría" }}</td>
+                    <td>{{ producto.username|default:"Sin usuario" }}</td>
+                    <td>${{ producto.valor_estimado|default:0|floatformat:0 }}</td>
+                    <td>{% if producto.imagen %}Sí{% else %}No{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="vacio">No hay productos disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ÚLTIMOS USUARIOS -->
+<section class="seccion">
+    <h2>Últimos usuarios registrados</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Verificado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in ultimosUsuarios %}
+                <tr>
+                    <td>{{ usuario.id_usuario }}</td>
+                    <td>{{ usuario.username|default:"Sin nombre" }}</td>
+                    <td>{{ usuario.correo }}</td>
+                    <td>{{ usuario.rol|default:"Sin rol" }}</td>
+                    <td>{{ usuario.estado|default:"Sin estado" }}</td>
+                    <td>{{ usuario.verificado|default:"No" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="vacio">No hay usuarios disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- SOLICITUDES -->
+<section class="seccion">
+    <h2>Solicitudes de entrega</h2>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Solicitante</th>
+                    <th>Estado</th>
+                    <th>Estado de entrega</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitud in solicitudesEntrega %}
+                <tr>
+                    <td>{{ solicitud.id_intercambio }}</td>
+                    <td>{{ solicitud.nombre_producto|default:"Sin producto" }}</td>
+                    <td>{{ solicitud.nombre_solicitante|default:"Sin solicitante" }}</td>
+                    <td>{{ solicitud.estado|default:"Sin estado" }}</td>
+                    <td>{{ solicitud.estado_entrega|default:"Sin estado" }}</td>
+                    <td>{{ solicitud.creado_en|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="vacio">No hay solicitudes disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer class="pie">
+    Swapy - Reporte generado desde el panel administrativo.
+</footer>
+
+</body>
+</html>
