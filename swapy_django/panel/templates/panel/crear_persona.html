@@ -1,0 +1,377 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar persona | Swapy</title>
+
+    <link rel="stylesheet" href="{% static 'panel/admin.css' %}">
+
+    <style>
+        .form-container {
+            max-width: 850px;
+            margin: 25px auto;
+            padding: 30px;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            background: var(--paper);
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: 2px solid var(--ink);
+        }
+
+        .form-group small {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn-submit,
+        .btn-cancel {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            border: none;
+            background: var(--ink);
+            color: white;
+        }
+
+        .btn-cancel {
+            border: 1px solid var(--line);
+            color: var(--ink);
+        }
+
+        .error-message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: var(--radius-sm);
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .required-note {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .form-section-title {
+            grid-column: 1 / -1;
+            margin: 10px 0 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--line);
+            font-size: 16px;
+        }
+
+        @media (max-width: 650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <aside class="sidebar">
+
+        <div class="brand-mark">
+            <div class="brand-wordmark">SWAPY<span>.</span></div>
+        </div>
+
+        <p class="role-tag">Panel de administración</p>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{% url 'panel_dashboard' %}" class="nav-item">
+                        📊 Inicio
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'panel_personas' %}" class="nav-item active">
+                        👥 Personas registradas
+                    </a>
+                </li>
+
+                <li><span class="nav-item">❓ Preguntas frecuentes</span></li>
+                <li><span class="nav-item">🚩 Denuncias</span></li>
+                <li><span class="nav-item">📦 Solicitudes de entrega</span></li>
+                <li><span class="nav-item">📈 Reportes</span></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{% url 'panel_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-btn sidebar-btn-logout">
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <div class="admin-main">
+
+        <header class="topbar">
+            <div class="topbar-right">
+                <div class="topbar-profile">
+                    <div class="topbar-avatar">
+                        {{ correo|first|upper }}
+                    </div>
+
+                    <div>
+                        <div class="topbar-profile-role">Administrador</div>
+                        <small>{{ correo }}</small>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content-admin">
+
+            <div class="section-header">
+                <div>
+                    <span class="eyebrow">Gestión de usuarios</span>
+                    <h1>Registrar persona</h1>
+                </div>
+            </div>
+
+            <section class="form-container">
+
+                <p class="required-note">
+                    Los campos marcados con * son obligatorios.
+                </p>
+
+                {% if error %}
+                    <div class="error-message">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-grid">
+
+                        <h3 class="form-section-title">Datos de registro</h3>
+
+                        <div class="form-group">
+                            <label for="tipo_documento">Tipo de documento *</label>
+                            <select id="tipo_documento" name="tipo_documento" required>
+                                <option value="">Selecciona una opción</option>
+
+                                {% for tipo in tipos_documento %}
+                                    <option value="{{ tipo.id_doc }}">
+                                        {{ tipo.tipo_doc }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numero_documento">Número de documento *</label>
+                            <input
+                                type="text"
+                                id="numero_documento"
+                                name="numero_documento"
+                                maxlength="30"
+                                inputmode="numeric"
+                                pattern="[0-9]+"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username">Nombre de usuario</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                maxlength="50"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input
+                                type="tel"
+                                id="telefono"
+                                name="telefono"
+                                maxlength="20"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="correo">Correo electrónico *</label>
+                            <input
+                                type="email"
+                                id="correo"
+                                name="correo"
+                                maxlength="50"
+                                required
+                            >
+                            <small>Para empleados, el límite es de 30 caracteres.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="rol">Rol *</label>
+                            <select id="rol" name="rol" required>
+                                <option value="">Selecciona un rol</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Empleado">Empleado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estado">Estado *</label>
+                            <select id="estado" name="estado" required>
+                                <option value="">Selecciona un estado</option>
+                                <option value="Activo">Activo</option>
+                                <option value="Inactivo">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <h3 class="form-section-title">Datos personales del empleado</h3>
+
+                        <div class="form-group">
+                            <label for="primer_nombre">Primer nombre</label>
+                            <input
+                                type="text"
+                                id="primer_nombre"
+                                name="primer_nombre"
+                                maxlength="15"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="segundo_nombre">Segundo nombre</label>
+                            <input
+                                type="text"
+                                id="segundo_nombre"
+                                name="segundo_nombre"
+                                maxlength="15"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="primer_apellido">Primer apellido</label>
+                            <input
+                                type="text"
+                                id="primer_apellido"
+                                name="primer_apellido"
+                                maxlength="12"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="segundo_apellido">Segundo apellido</label>
+                            <input
+                                type="text"
+                                id="segundo_apellido"
+                                name="segundo_apellido"
+                                maxlength="12"
+                            >
+                        </div>
+
+                        <h3 class="form-section-title">Seguridad de la cuenta</h3>
+
+                        <div class="form-group">
+                            <label for="contrasena">Contraseña *</label>
+                            <input
+                                type="password"
+                                id="contrasena"
+                                name="contrasena"
+                                minlength="6"
+                                required
+                            >
+                            <small>Mínimo 6 caracteres.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmar_contrasena">Confirmar contraseña *</label>
+                            <input
+                                type="password"
+                                id="confirmar_contrasena"
+                                name="confirmar_contrasena"
+                                minlength="6"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            Registrar persona
+                        </button>
+
+                        <a href="{% url 'panel_personas' %}" class="btn-cancel">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </form>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

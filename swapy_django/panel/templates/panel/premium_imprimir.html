@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reporte Usuarios Premium | Swapy</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body { font-family: Arial, sans-serif; color: #222; margin: 30px; background: #fff; }
+
+        .encabezado { border-bottom: 3px solid #176b58; padding-bottom: 18px; margin-bottom: 25px; }
+        .encabezado h1 { margin: 0 0 8px; color: #173b35; }
+        .encabezado h2 { margin: 0 0 8px; font-size: 18px; color: #176b58; }
+        .encabezado p { margin: 4px 0; color: #555; }
+
+        .acciones { display: flex; gap: 10px; margin-bottom: 25px; }
+
+        button {
+            border: 0; border-radius: 6px; padding: 10px 16px;
+            background: #176b58; color: white; cursor: pointer; font-weight: bold;
+        }
+
+        .indicadores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
+        .indicador { border: 1px solid #ddd; border-radius: 8px; padding: 14px; }
+        .indicador span { display: block; color: #555; font-size: 12px; margin-bottom: 8px; }
+        .indicador strong { font-size: 20px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 11px; overflow-wrap: anywhere; }
+        th { background: #edf5f1; color: #173b35; }
+
+        .vacio { text-align: center; color: #777; padding: 18px; }
+
+        .pie {
+            margin-top: 35px; padding-top: 12px; border-top: 1px solid #ddd;
+            font-size: 11px; color: #777; text-align: center;
+        }
+
+        @media print {
+            body { margin: 12mm; }
+            .acciones { display: none; }
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="encabezado">
+    <h1>SWAPY</h1>
+    <h2>Reporte de usuarios Premium</h2>
+    <p><strong>Consulta:</strong> {{ filtros_texto }}</p>
+    <p>Fecha de generación: {% now "d/m/Y H:i" %}</p>
+    <p>Generado por: {{ correo }}</p>
+</header>
+
+<div class="acciones">
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+    <button onclick="window.close()">Cerrar</button>
+</div>
+
+<div class="indicadores">
+    <div class="indicador"><span>Usuarios</span><strong>{{ total_usuarios }}</strong></div>
+    <div class="indicador"><span>Pagos</span><strong>{{ total_pagos }}</strong></div>
+    <div class="indicador"><span>Total recaudado</span><strong>${{ total_recaudado }} COP</strong></div>
+    {% for plan, cantidad in por_plan.items %}
+    <div class="indicador"><span>Plan {{ plan }}</span><strong>{{ cantidad }}</strong></div>
+    {% endfor %}
+</div>
+
+{% if pagos %}
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Plan pagado</th>
+            <th>Monto</th>
+            <th>Fecha de pago</th>
+            <th>Referencia</th>
+            <th>Suscripción actual</th>
+            <th>Categorías de sus productos</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pago in pagos %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ pago.nombre }}</td>
+            <td>{{ pago.correo }}</td>
+            <td>{{ pago.plan }}</td>
+            <td>${{ pago.monto_texto }}</td>
+            <td>{{ pago.creado_en|date:"d/m/Y H:i" }}</td>
+            <td>{{ pago.referencia }}</td>
+            <td>
+                {{ pago.estado_texto }}
+                {% if pago.fecha_fin %}<br>Vence: {{ pago.fecha_fin|date:"d/m/Y" }}{% endif %}
+            </td>
+            <td>{{ pago.categorias_productos|default:"Sin productos activos" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="vacio">No hay pagos premium para esta consulta.</p>
+{% endif %}
+
+<p class="pie">Swapy · Panel administrativo · Reporte de usuarios Premium</p>
+
+<script>
+    // Abre el diálogo de impresión automáticamente (Guardar como PDF)
+    window.addEventListener("load", function () {
+        setTimeout(function () { window.print(); }, 400);
+    });
+</script>
+
+</body>
+</html>

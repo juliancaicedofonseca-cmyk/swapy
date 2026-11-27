@@ -1,0 +1,498 @@
+
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}Preguntas de usuarios | Swapy{% endblock %}
+
+{% block preguntas_active %}active{% endblock %}
+
+{% block estilos %}
+<style>
+    .preguntas-page .section-header {
+        margin-bottom: 30px;
+    }
+
+    .preguntas-page .eyebrow {
+        color: #16865d;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .preguntas-page .section-header h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 30px;
+        margin-top: 8px;
+    }
+
+    .preguntas-page .section-header h1 span {
+        color: #16865d;
+    }
+
+    .preguntas-page .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 25px;
+    }
+
+    .preguntas-page .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid #0d6efd;
+        box-shadow: 0 3px 12px #00000008;
+    }
+
+    .preguntas-page .stat-card.green {
+        border-color: #198754;
+    }
+
+    .preguntas-page .stat-card.purple {
+        border-color: #7952b3;
+    }
+
+    .preguntas-page .stat-label {
+        color: #6c757d;
+        font-size: 13px;
+    }
+
+    .preguntas-page .stat-number {
+        font-size: 27px;
+        font-weight: 700;
+        margin-top: 7px;
+    }
+
+    .preguntas-page .table-container {
+        background: white;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px #00000008;
+    }
+
+    .preguntas-page .table-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .preguntas-page .filter-btn {
+        background: #e9ecef;
+        color: #495057;
+        padding: 9px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .preguntas-page .filter-btn:hover {
+        background: #dce2e8;
+    }
+
+    .preguntas-page .filter-btn.active {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .preguntas-page .preguntas-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .preguntas-page .pregunta-item {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+
+    .preguntas-page .pregunta-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+    .preguntas-page .pregunta-info h4 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .preguntas-page .pregunta-usuario {
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .preguntas-page .pregunta-fecha {
+        font-size: 12px;
+        color: #adb5bd;
+        margin-top: 5px;
+    }
+
+    .preguntas-page .badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .preguntas-page .badge-pending {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .preguntas-page .badge-success {
+        background: #198754;
+        color: white;
+    }
+
+    .preguntas-page .badge-closed {
+        background: #6c757d;
+        color: white;
+    }
+
+    .preguntas-page .pregunta-body {
+        margin: 16px 0;
+    }
+
+    .preguntas-page .text-body {
+        color: #5a6c7d;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 8px;
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .preguntas-page .btn-respond {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .preguntas-page .btn-respond:hover {
+        background: #0b5ed7;
+    }
+
+    .preguntas-page .empty-state {
+        text-align: center;
+        padding: 55px 15px;
+        color: #6c757d;
+    }
+
+    .preguntas-page .empty-icon {
+        font-size: 35px;
+        margin-bottom: 12px;
+    }
+
+    .preguntas-page .alert {
+        padding: 13px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .preguntas-page .alert-success {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .preguntas-page .alert-error {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .preguntas-page .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: #0008;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        z-index: 1000;
+    }
+
+    .preguntas-page .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 550px;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .preguntas-page .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .preguntas-page .close-btn {
+        border: none;
+        background: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    .preguntas-page .modal-body {
+        padding: 22px;
+    }
+
+    .preguntas-page .form-group {
+        margin-bottom: 18px;
+    }
+
+    .preguntas-page .form-group label {
+        display: block;
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .preguntas-page .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font: inherit;
+        resize: vertical;
+    }
+
+    .preguntas-page .form-group textarea:focus {
+        outline: none;
+        border-color: #16865d;
+        box-shadow: 0 0 0 3px #16865d20;
+    }
+
+    .preguntas-page .save-btn {
+        width: 100%;
+        padding: 13px;
+        border: none;
+        border-radius: 8px;
+        background: #0d6efd;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .preguntas-page .save-btn:hover {
+        background: #0b5ed7;
+    }
+
+    @media(max-width: 850px) {
+        .preguntas-page .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media(max-width: 600px) {
+        .preguntas-page .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .preguntas-page .section-header h1 {
+            font-size: 24px;
+        }
+
+        .preguntas-page .table-container {
+            padding: 15px;
+        }
+
+        .preguntas-page .pregunta-header {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="preguntas-page">
+
+    <div class="section-header">
+        <span class="eyebrow">Soporte</span>
+        <h1>Preguntas <span>de usuarios</span></h1>
+    </div>
+
+    {% if mensaje == "respondida" %}
+        <div class="alert alert-success">
+            ✅ Pregunta respondida correctamente.
+        </div>
+    {% elif request.GET.error %}
+        <div class="alert alert-error">
+            No fue posible responder la pregunta. Revisa los datos e inténtalo nuevamente.
+        </div>
+    {% endif %}
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-number">{{ total_pendientes }}</div>
+        </div>
+
+        <div class="stat-card green">
+            <div class="stat-label">Respondidas</div>
+            <div class="stat-number">{{ total_respondidas }}</div>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="stat-label">Cerradas</div>
+            <div class="stat-number">{{ total_cerradas }}</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+
+        <div class="table-toolbar">
+            <a href="{% url 'panel_preguntas' %}?filtro=pendiente"
+               class="filter-btn {% if filtro == 'pendiente' %}active{% endif %}">
+                Pendientes
+            </a>
+
+            <a href="{% url 'panel_preguntas' %}?filtro=respondida"
+               class="filter-btn {% if filtro == 'respondida' %}active{% endif %}">
+                Respondidas
+            </a>
+
+            <a href="{% url 'panel_preguntas' %}?filtro=cerrada"
+               class="filter-btn {% if filtro == 'cerrada' %}active{% endif %}">
+                Cerradas
+            </a>
+        </div>
+
+        {% if preguntas %}
+            <div class="preguntas-list">
+
+                {% for pregunta in preguntas %}
+                    <div class="pregunta-item">
+
+                        <div class="pregunta-header">
+                            <div class="pregunta-info">
+                                <h4>{{ pregunta.pregunta|truncatechars:80 }}</h4>
+
+                                <p class="pregunta-usuario">
+                                    De: {{ pregunta.id_usuario.correo }}
+                                </p>
+
+                                <p class="pregunta-fecha">
+                                    {{ pregunta.fecha_creacion|date:"d/m/Y H:i" }}
+                                </p>
+                            </div>
+
+                            <span class="badge
+                                {% if pregunta.estado == 'pendiente' %}badge-pending
+                                {% elif pregunta.estado == 'respondida' %}badge-success
+                                {% else %}badge-closed{% endif %}">
+                                {{ pregunta.estado|title }}
+                            </span>
+                        </div>
+
+                        <div class="pregunta-body">
+                            <p><strong>Pregunta:</strong></p>
+                            <p class="text-body">{{ pregunta.pregunta }}</p>
+
+                            {% if pregunta.respuesta %}
+                                <p style="margin-top:16px;"><strong>Respuesta:</strong></p>
+                                <p class="text-body">{{ pregunta.respuesta }}</p>
+                            {% endif %}
+                        </div>
+
+                        {% if pregunta.estado == "pendiente" %}
+                            <button
+                                type="button"
+                                class="btn-respond"
+                                onclick="abrirModalRespuesta('{{ pregunta.id_pregunta }}')">
+                                💬 Responder
+                            </button>
+                        {% endif %}
+
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">❓</div>
+                <p>No hay preguntas en esta categoría.</p>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <div id="modal-respuesta-pregunta" class="modal-overlay">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h2>Responder pregunta</h2>
+                <button type="button" class="close-btn"
+                        onclick="cerrarModal()">✖</button>
+            </div>
+
+            <div class="modal-body">
+                <form method="POST" action="{% url 'panel_responder_pregunta' %}">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="id_pregunta" id="resp-pregunta-id">
+
+                    <div class="form-group">
+                        <label>Tu respuesta</label>
+
+                        <textarea
+                            name="respuesta"
+                            placeholder="Escribe tu respuesta aquí..."
+                            rows="8"
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" class="save-btn">
+                        💾 Enviar respuesta
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function abrirModalRespuesta(id) {
+    document.getElementById("resp-pregunta-id").value = id;
+    document.getElementById("modal-respuesta-pregunta").style.display = "flex";
+}
+
+function cerrarModal() {
+    document.getElementById("modal-respuesta-pregunta").style.display = "none";
+}
+
+const modalPregunta = document.getElementById("modal-respuesta-pregunta");
+
+modalPregunta.addEventListener("click", function(event) {
+    if (event.target === this) {
+        cerrarModal();
+    }
+});
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        cerrarModal();
+    }
+});
+</script>
+{% endblock %}

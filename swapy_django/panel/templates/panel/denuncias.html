@@ -1,0 +1,581 @@
+
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}Denuncias | Swapy{% endblock %}
+
+{% block denuncias_active %}active{% endblock %}
+
+{% block estilos %}
+<style>
+    .denuncias-page .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 25px;
+    }
+
+    .denuncia-stat {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid #0d6efd;
+        box-shadow: 0 3px 12px #00000008;
+    }
+
+    .denuncia-stat.orange { border-color: #fd7e14; }
+    .denuncia-stat.green { border-color: #198754; }
+    .denuncia-stat.red { border-color: #dc3545; }
+
+    .denuncias-page .stat-label {
+        color: #6c757d;
+        font-size: 13px;
+    }
+
+    .denuncias-page .stat-number {
+        font-size: 27px;
+        font-weight: 700;
+        margin-top: 7px;
+    }
+
+    .table-container {
+        background: white;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px #00000008;
+    }
+
+    .table-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .filter-btn {
+        background: #e9ecef;
+        color: #495057;
+        padding: 9px 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .filter-btn:hover { background: #dce2e8; }
+
+    .filter-btn.active {
+        background: #16865d;
+        color: white;
+    }
+
+    .denuncias-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .denuncia-item {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        background: #f8f9fa;
+    }
+
+    .denuncia-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 16px;
+    }
+
+    .denuncia-info h4 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .denuncia-usuario {
+        font-size: 13px;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .denuncia-fecha {
+        font-size: 12px;
+        color: #adb5bd;
+        margin-top: 5px;
+    }
+
+    .denuncia-badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .badge-pending {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .badge-warning {
+        background: #fd7e14;
+        color: white;
+    }
+
+    .badge-success {
+        background: #198754;
+        color: white;
+    }
+
+    .badge-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .denuncia-body { margin: 16px 0; }
+
+    .denuncia-text {
+        color: #5a6c7d;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 8px;
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    .btn-action {
+        background: #16865d;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: inherit;
+        transition: 0.2s;
+    }
+
+    .btn-action:hover { background: #116b49; }
+
+    .empty-state {
+        text-align: center;
+        padding: 55px 15px;
+        color: #6c757d;
+    }
+
+    .empty-icon {
+        font-size: 35px;
+        margin-bottom: 12px;
+    }
+
+    .alert {
+        padding: 13px 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .alert-error {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        width: 100%;
+        max-width: 550px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h2 { font-size: 20px; }
+
+    .close-btn {
+        border: none;
+        background: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #555;
+    }
+
+    .modal-body { padding: 22px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+        display: block;
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font: inherit;
+    }
+
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #16865d;
+    }
+
+    .save-btn {
+        width: 100%;
+        padding: 13px;
+        border: none;
+        border-radius: 8px;
+        background: #16865d;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .save-btn:hover { background: #116b49; }
+
+    @media(max-width: 900px) {
+        .denuncias-page .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media(max-width: 600px) {
+        .denuncia-header {
+            flex-direction: column;
+        }
+
+        .table-container { padding: 15px; }
+    }
+</style>
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="denuncias-page">
+
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Moderación</span>
+            <h1>Denuncias de Usuarios</h1>
+        </div>
+    </div>
+
+    {% if mensaje == "respondida" %}
+        <div class="alert alert-success">
+            ✅ Denuncia procesada correctamente.
+        </div>
+    {% elif request.GET.error %}
+        <div class="alert alert-error">
+            No fue posible procesar la denuncia.
+            Revisa los datos e inténtalo nuevamente.
+        </div>
+    {% endif %}
+
+    <!-- ESTADÍSTICAS -->
+    <section class="stats-grid">
+
+        <article class="denuncia-stat">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-number">{{ total_pendientes }}</div>
+        </article>
+
+        <article class="denuncia-stat orange">
+            <div class="stat-label">En revisión</div>
+            <div class="stat-number">{{ total_revision }}</div>
+        </article>
+
+        <article class="denuncia-stat green">
+            <div class="stat-label">Resueltas</div>
+            <div class="stat-number">{{ total_resueltas }}</div>
+        </article>
+
+        <article class="denuncia-stat red">
+            <div class="stat-label">Rechazadas</div>
+            <div class="stat-number">{{ total_rechazadas }}</div>
+        </article>
+
+    </section>
+
+    <!-- LISTADO Y FILTROS -->
+    <section class="table-container">
+
+        <div class="table-toolbar">
+
+            <a href="{% url 'panel_denuncias' %}?filtro=pendiente"
+               class="filter-btn {% if filtro == 'pendiente' %}active{% endif %}">
+                Pendientes
+            </a>
+
+            <a href="{% url 'panel_denuncias' %}?filtro=en_revision"
+               class="filter-btn {% if filtro == 'en_revision' %}active{% endif %}">
+                En revisión
+            </a>
+
+            <a href="{% url 'panel_denuncias' %}?filtro=resuelta"
+               class="filter-btn {% if filtro == 'resuelta' %}active{% endif %}">
+                Resueltas
+            </a>
+
+            <a href="{% url 'panel_denuncias' %}?filtro=rechazada"
+               class="filter-btn {% if filtro == 'rechazada' %}active{% endif %}">
+                Rechazadas
+            </a>
+
+        </div>
+
+        {% if denuncias %}
+
+            <div class="denuncias-list">
+
+                {% for denuncia in denuncias %}
+
+                    <article class="denuncia-item">
+
+                        <div class="denuncia-header">
+
+                            <div class="denuncia-info">
+
+                                <h4>
+                                    🚩 {{ denuncia.tipo_denuncia|title }}
+                                </h4>
+
+                                <p class="denuncia-usuario">
+                                    Por:
+                                    {{ denuncia.id_usuario_denunciante.correo }}
+                                </p>
+
+                                {% if denuncia.id_usuario_denunciado %}
+                                    <p class="denuncia-usuario">
+                                        Contra:
+                                        {{ denuncia.id_usuario_denunciado.correo }}
+                                    </p>
+                                {% endif %}
+
+                                <p class="denuncia-fecha">
+                                    {{ denuncia.fecha_creacion|date:"d/m/Y H:i" }}
+                                </p>
+
+                            </div>
+
+                            <span class="denuncia-badge
+                                {% if denuncia.estado == 'pendiente' %}
+                                    badge-pending
+                                {% elif denuncia.estado == 'en_revision' %}
+                                    badge-warning
+                                {% elif denuncia.estado == 'resuelta' %}
+                                    badge-success
+                                {% else %}
+                                    badge-danger
+                                {% endif %}">
+                                {{ denuncia.estado|title }}
+                            </span>
+
+                        </div>
+
+                        <div class="denuncia-body">
+
+                            <p>
+                                <strong>Descripción:</strong>
+                            </p>
+
+                            <p class="denuncia-text">
+                                {{ denuncia.descripcion }}
+                            </p>
+
+                            {% if denuncia.respuesta %}
+
+                                <p style="margin-top:16px;">
+                                    <strong>Resolución:</strong>
+                                </p>
+
+                                <p class="denuncia-text">
+                                    {{ denuncia.respuesta }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                        {% if denuncia.estado != "resuelta" and denuncia.estado != "rechazada" %}
+
+                            <button
+                                type="button"
+                                class="btn-action"
+                                onclick="abrirModalResolucion('{{ denuncia.id_denuncia }}')">
+
+                                ✅ Procesar denuncia
+
+                            </button>
+
+                        {% endif %}
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <div class="empty-icon">✨</div>
+                <p>No hay denuncias en esta categoría.</p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- MODAL PARA PROCESAR DENUNCIA -->
+<div id="modal-resolucion-denuncia" class="modal-overlay">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Procesar denuncia</h2>
+
+            <button
+                type="button"
+                class="close-btn"
+                onclick="cerrarModal()">
+                ✖
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <form method="POST" action="{% url 'panel_responder_denuncia' %}">
+
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="id_denuncia"
+                    id="res-denuncia-id">
+
+                <div class="form-group">
+
+                    <label for="estado-denuncia">
+                        Estado de resolución
+                    </label>
+
+                    <select
+                        name="estado"
+                        id="estado-denuncia"
+                        required>
+
+                        <option value="resuelta">
+                            ✅ Resuelta
+                        </option>
+
+                        <option value="rechazada">
+                            ❌ Rechazada
+                        </option>
+
+                        <option value="en_revision">
+                            🔍 Mantener en revisión
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="respuesta-denuncia">
+                        Notas de resolución
+                    </label>
+
+                    <textarea
+                        name="respuesta"
+                        id="respuesta-denuncia"
+                        placeholder="Describe cómo se resolvió la denuncia..."
+                        rows="8"
+                        required></textarea>
+
+                </div>
+
+                <button type="submit" class="save-btn">
+                    💾 Guardar resolución
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function abrirModalResolucion(id) {
+    document.getElementById("res-denuncia-id").value = id;
+    document.getElementById("modal-resolucion-denuncia").style.display = "flex";
+}
+
+function cerrarModal() {
+    document.getElementById("modal-resolucion-denuncia").style.display = "none";
+}
+
+const modalDenuncia = document.getElementById("modal-resolucion-denuncia");
+
+modalDenuncia.addEventListener("click", function(event) {
+    if (event.target === this) {
+        cerrarModal();
+    }
+});
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+        cerrarModal();
+    }
+});
+</script>
+
+{% endblock %}

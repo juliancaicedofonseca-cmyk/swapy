@@ -1,0 +1,313 @@
+
+{% extends "panel/base_admin.html" %}
+
+{% block titulo %}Panel administrativo | Swapy{% endblock %}
+
+{% block inicio_active %}active{% endblock %}
+
+{% block contenido %}
+
+<div class="section-header">
+    <div>
+        <span class="eyebrow">Resumen general</span>
+        <h1>Panel administrativo</h1>
+        <p>Estado general y novedades importantes de Swapy.</p>
+    </div>
+</div>
+
+<!-- PERSONAS -->
+<section class="dashboard-section">
+    <h2>Personas</h2>
+
+    <div class="stats-grid">
+
+        <article class="stat-card blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-label">Personas registradas</div>
+            <div class="stat-number">{{ total_usuarios|default:0 }}</div>
+        </article>
+
+        <article class="stat-card green">
+            <div class="stat-icon">✓</div>
+            <div class="stat-label">Usuarios activos</div>
+            <div class="stat-number">{{ usuarios_activos|default:0 }}</div>
+        </article>
+
+        <article class="stat-card red">
+            <div class="stat-icon">!</div>
+            <div class="stat-label">Usuarios inactivos</div>
+            <div class="stat-number">{{ usuarios_inactivos|default:0 }}</div>
+        </article>
+
+        <article class="stat-card amber">
+            <div class="stat-icon">♛</div>
+            <div class="stat-label">Administradores</div>
+            <div class="stat-number">{{ total_administradores|default:0 }}</div>
+        </article>
+
+        <article class="stat-card blue">
+            <div class="stat-icon">💼</div>
+            <div class="stat-label">Empleados</div>
+            <div class="stat-number">{{ total_empleados|default:0 }}</div>
+        </article>
+
+        <article class="stat-card green">
+            <div class="stat-icon">✓</div>
+            <div class="stat-label">Usuarios verificados</div>
+            <div class="stat-number">{{ usuarios_verificados|default:0 }}</div>
+        </article>
+
+    </div>
+</section>
+
+<!-- PRODUCTOS Y CATEGORÍAS -->
+<section class="dashboard-section">
+    <h2>Productos y categorías</h2>
+
+    <div class="stats-grid">
+
+        <article class="stat-card blue">
+            <div class="stat-icon">📦</div>
+            <div class="stat-label">Productos registrados</div>
+            <div class="stat-number">{{ total_productos|default:0 }}</div>
+        </article>
+
+        <article class="stat-card green">
+            <div class="stat-icon">🗂️</div>
+            <div class="stat-label">Categorías</div>
+            <div class="stat-number">{{ total_categorias|default:0 }}</div>
+        </article>
+
+        <article class="stat-card amber">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Valor estimado de productos</div>
+            <div class="stat-number">
+                ${{ valor_total_estimado|default:0 }}
+            </div>
+        </article>
+
+    </div>
+</section>
+
+<!-- SOLICITUDES -->
+<section class="dashboard-section">
+    <h2>Solicitudes de entrega</h2>
+
+    <div class="stats-grid">
+
+        <article class="stat-card blue">
+            <div class="stat-icon">📋</div>
+            <div class="stat-label">Solicitudes totales</div>
+            <div class="stat-number">{{ total_solicitudes|default:0 }}</div>
+        </article>
+
+        <article class="stat-card green">
+            <div class="stat-icon">🆕</div>
+            <div class="stat-label">Solicitudes de hoy</div>
+            <div class="stat-number">{{ solicitudes_hoy|default:0 }}</div>
+        </article>
+
+        <article class="stat-card amber">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-label">Pendientes o en curso</div>
+            <div class="stat-number">{{ solicitudes_pendientes|default:0 }}</div>
+        </article>
+
+    </div>
+</section>
+
+<!-- DENUNCIAS Y PREGUNTAS -->
+<section class="dashboard-section">
+    <h2>Elementos que requieren atención</h2>
+
+    <div class="stats-grid">
+
+        <article class="stat-card red">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-label">Denuncias pendientes</div>
+            <div class="stat-number">{{ denuncias_pendientes|default:0 }}</div>
+        </article>
+
+        <article class="stat-card amber">
+            <div class="stat-icon">🔎</div>
+            <div class="stat-label">Denuncias en revisión</div>
+            <div class="stat-number">{{ denuncias_revision|default:0 }}</div>
+        </article>
+
+        <article class="stat-card blue">
+            <div class="stat-icon">❓</div>
+            <div class="stat-label">Preguntas pendientes</div>
+            <div class="stat-number">{{ preguntas_pendientes|default:0 }}</div>
+        </article>
+
+    </div>
+</section>
+
+<!-- ÚLTIMAS SOLICITUDES -->
+<section class="dashboard-section">
+    <div class="section-header">
+        <div>
+            <span class="eyebrow">Actividad reciente</span>
+            <h2>Últimas solicitudes</h2>
+        </div>
+
+        <a href="{% url 'panel_solicitudes' %}" class="dashboard-link">
+            Ver todas
+        </a>
+    </div>
+
+    <div class="dashboard-table-container">
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Solicitante</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for solicitud in ultimas_solicitudes %}
+                <tr>
+                    <td>
+                        {{ solicitud.producto|default:"Sin producto" }}
+                    </td>
+                    <td>
+                        {{ solicitud.solicitante|default:"Sin solicitante" }}
+                    </td>
+                    <td>
+                        {{ solicitud.fecha|date:"d/m/Y H:i" }}
+                    </td>
+                    <td>
+                        <span class="dashboard-status">
+                            {{ solicitud.estado|default:"Sin estado" }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="dashboard-empty">
+                        No hay solicitudes registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ACCESOS DIRECTOS -->
+<section class="dashboard-section">
+    <h2>Accesos directos</h2>
+
+    <div class="dashboard-shortcuts">
+
+        <a href="{% url 'panel_personas' %}" class="dashboard-shortcut">
+            👥 Personas registradas
+        </a>
+
+        <a href="{% url 'panel_solicitudes' %}" class="dashboard-shortcut">
+            📦 Solicitudes de entrega
+        </a>
+
+        <a href="{% url 'panel_denuncias' %}" class="dashboard-shortcut">
+            ⚠️ Denuncias
+        </a>
+
+        <a href="{% url 'panel_preguntas' %}" class="dashboard-shortcut">
+            ❓ Preguntas
+        </a>
+
+        <a href="{% url 'panel_reportes' %}" class="dashboard-shortcut">
+            📊 Reportes
+        </a>
+
+    </div>
+</section>
+
+<style>
+.dashboard-section {
+    margin-top: 30px;
+}
+
+.dashboard-section h2 {
+    margin-bottom: 18px;
+    font-size: 20px;
+}
+
+.dashboard-table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.dashboard-table th {
+    font-weight: 600;
+    color: #555;
+}
+
+.dashboard-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #eef3ff;
+    font-size: 12px;
+}
+
+.dashboard-empty {
+    text-align: center !important;
+    color: #777;
+    padding: 25px !important;
+}
+
+.dashboard-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.dashboard-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.dashboard-shortcut {
+    padding: 18px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    color: #333;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.dashboard-shortcut:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+    .dashboard-table th,
+    .dashboard-table td {
+        padding: 10px;
+        font-size: 13px;
+    }
+}
+</style>
+
+{% endblock %}

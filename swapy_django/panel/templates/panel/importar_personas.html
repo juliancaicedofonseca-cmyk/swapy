@@ -1,0 +1,772 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar personas | Swapy</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'panel/admin.css' %}">
+
+    <style>
+        .import-page {
+            max-width: 1150px;
+            margin: 0 auto;
+        }
+
+        .import-intro {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 8px;
+            line-height: 1.7;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
+
+        .back-link:hover {
+            color: var(--ink);
+        }
+
+        .import-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(250px, 0.8fr);
+            gap: 22px;
+            margin-top: 28px;
+            align-items: start;
+        }
+
+        .import-card {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 5px 20px rgba(20, 35, 50, 0.035);
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: #e8f3f5;
+            color: #176579;
+            font-size: 21px;
+            flex-shrink: 0;
+        }
+
+        .card-heading h2 {
+            margin: 0;
+            font-size: 17px;
+            color: var(--ink);
+        }
+
+        .card-heading p {
+            margin: 4px 0 0;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .upload-zone {
+            display: block;
+            border: 2px dashed #b9cbd0;
+            border-radius: 14px;
+            padding: 36px 20px;
+            text-align: center;
+            background: #f7faf9;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragging {
+            border-color: #278b75;
+            background: #eff8f4;
+        }
+
+        .upload-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 15px;
+            display: grid;
+            place-items: center;
+            border-radius: 17px;
+            background: #e3f2ec;
+            color: #23785f;
+            font-size: 27px;
+        }
+
+        .upload-zone strong {
+            display: block;
+            color: var(--ink);
+            font-size: 15px;
+            margin-bottom: 7px;
+        }
+
+        .upload-zone span {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .selected-file {
+            display: none;
+            margin-top: 15px;
+            padding: 12px 14px;
+            border-radius: 9px;
+            background: #edf7f1;
+            color: #236c4c;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .selected-file.visible {
+            display: block;
+        }
+
+        .file-formats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .format-tag {
+            padding: 6px 11px;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--paper);
+        }
+
+        .primary-action {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 13px 18px;
+            margin-top: 20px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--ink);
+            color: white;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .primary-action:hover {
+            background: var(--ink-soft);
+            transform: translateY(-1px);
+        }
+
+        .secondary-action {
+            background: #247c67;
+        }
+
+        .secondary-action:hover {
+            background: #19654f;
+        }
+
+        .instructions-list {
+            display: grid;
+            gap: 17px;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .instruction-number {
+            width: 27px;
+            height: 27px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: #eaf1f4;
+            color: #376477;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .instruction-item strong {
+            display: block;
+            color: var(--ink);
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .instruction-item p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .limit-box {
+            padding: 15px;
+            margin-top: 22px;
+            border-radius: 10px;
+            background: #f0f5f6;
+        }
+
+        .limit-box strong {
+            display: block;
+            font-size: 12px;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .limit-box p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .columns-box {
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .columns-box h3 {
+            font-size: 13px;
+            margin: 0 0 10px;
+        }
+
+        .columns-code {
+            padding: 12px;
+            border-radius: 8px;
+            background: #f3f5f5;
+            color: #40545c;
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 10px;
+            line-height: 1.9;
+            overflow-wrap: anywhere;
+        }
+
+        .feedback {
+            padding: 15px 18px;
+            margin-top: 22px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .feedback-error {
+            color: #9a3434;
+            background: #fff0ef;
+            border: 1px solid #f0ceca;
+        }
+
+        .feedback-success {
+            color: #236b49;
+            background: #edf8f0;
+            border: 1px solid #c8e7d1;
+        }
+
+        .errors-list {
+            margin: 12px 0 0;
+            padding-left: 20px;
+        }
+
+        .errors-list li {
+            margin-bottom: 7px;
+        }
+
+        .preview-section {
+            margin-top: 24px;
+        }
+
+        .preview-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .preview-heading h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .preview-count {
+            padding: 7px 11px;
+            border-radius: 20px;
+            background: #e7f4ed;
+            color: #26724f;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .preview-table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .preview-table {
+            width: 100%;
+            min-width: 620px;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .preview-table th {
+            padding: 13px;
+            background: #f3f6f6;
+            color: var(--text-muted);
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-table td {
+            padding: 13px;
+            border-top: 1px solid var(--line);
+            color: var(--ink);
+        }
+
+        .preview-table tbody tr:hover {
+            background: #f8faf9;
+        }
+
+        .confirm-card {
+            margin-top: 22px;
+            border: 1px solid #cce5d6;
+            background: #f5faf6;
+        }
+
+        .confirm-card h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+            color: #246b4b;
+        }
+
+        .confirm-card p {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .confirm-card input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 11px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: white;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .import-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .import-card {
+                padding: 19px;
+            }
+
+            .upload-zone {
+                padding: 28px 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="admin-wrapper">
+
+    <aside class="sidebar">
+
+        <div class="brand-mark">
+            <div class="brand-wordmark">SWAPY<span>.</span></div>
+        </div>
+
+        <p class="role-tag">Panel de administración</p>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{% url 'panel_dashboard' %}" class="nav-item">
+                        📊 Inicio
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'panel_personas' %}" class="nav-item active">
+                        👥 Personas registradas
+                    </a>
+                </li>
+                <li><span class="nav-item">❓ Preguntas frecuentes</span></li>
+                <li><span class="nav-item">🚩 Denuncias</span></li>
+                <li><span class="nav-item">📦 Solicitudes de entrega</span></li>
+                <li><span class="nav-item">⭐ Usuarios Premium</span></li>
+                <li><span class="nav-item">📈 Reportes</span></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{% url 'panel_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-btn sidebar-btn-logout">
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <div class="admin-main">
+
+        <header class="topbar">
+            <div class="topbar-right">
+                <div class="topbar-profile">
+                    <div class="topbar-avatar">
+                        {{ correo|first|upper }}
+                    </div>
+                    <div>
+                        <div class="topbar-profile-role">Administrador</div>
+                        <small>{{ correo }}</small>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content-admin">
+            <div class="import-page">
+
+                <a href="{% url 'panel_personas' %}" class="back-link">
+                    ← Volver a personas registradas
+                </a>
+
+                <div class="section-header">
+                    <div>
+                        <span class="eyebrow">Gestión de usuarios</span>
+                        <h1>Importación masiva</h1>
+                        <p class="import-intro">
+                            Registra múltiples empleados y administradores
+                            mediante un archivo, de forma rápida y organizada.
+                        </p>
+                    </div>
+                </div>
+
+                {% if error %}
+                    <div class="feedback feedback-error">
+                        <strong>No se pudo completar la operación.</strong>
+                        <p>{{ error }}</p>
+                    </div>
+                {% endif %}
+
+                {% if errores %}
+                    <div class="feedback feedback-error">
+                        <strong>Se encontraron errores en el archivo.</strong>
+                        <ul class="errors-list">
+                            {% for mensaje in errores %}
+                                <li>{{ mensaje }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {% if cantidad and puede_confirmar %}
+                    <section class="preview-section">
+                        <div class="preview-heading">
+                            <h2>Vista previa de los registros</h2>
+                            <span class="preview-count">
+                                {{ cantidad }} registros encontrados
+                            </span>
+                        </div>
+
+                        {% if vista_previa %}
+                            <div class="preview-table-wrapper">
+                                <table class="preview-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fila</th>
+                                            <th>Documento</th>
+                                            <th>Correo electrónico</th>
+                                            <th>Rol</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for persona in vista_previa %}
+                                            <tr>
+                                                <td>{{ persona.fila }}</td>
+                                                <td>{{ persona.documento }}</td>
+                                                <td>{{ persona.correo }}</td>
+                                                <td>{{ persona.rol }}</td>
+                                                <td>{{ persona.estado }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if cantidad > 10 %}
+                                <p class="import-intro">
+                                    Se muestran los primeros 10 registros.
+                                    El archivo contiene {{ cantidad }} registros en total.
+                                </p>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if puede_confirmar %}
+                            <div class="import-card confirm-card">
+                                <h3>✓ Archivo validado correctamente</h3>
+                                <p>
+                                    No se encontraron errores. Selecciona nuevamente
+                                    el mismo archivo para confirmar la importación.
+                                </p>
+
+                                <form
+                                    method="POST"
+                                    action="{% url 'panel_confirmar_importacion' %}"
+                                    enctype="multipart/form-data"
+                                >
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="file"
+                                        name="archivo"
+                                        accept=".xlsx,.csv,.txt"
+                                        required
+                                    >
+
+                                    <button type="submit" class="primary-action secondary-action">
+                                        ✓ Confirmar e importar registros
+                                    </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </section>
+                {% else %}
+
+                    <div class="import-layout">
+
+                        <section class="import-card">
+
+                            <div class="card-heading">
+                                <div class="card-icon">⇧</div>
+                                <div>
+                                    <h2>Seleccionar archivo</h2>
+                                    <p>Carga el documento con las personas que deseas registrar.</p>
+                                </div>
+                            </div>
+
+                            <form
+                                method="POST"
+                                enctype="multipart/form-data"
+                                id="importForm"
+                            >
+                                {% csrf_token %}
+
+                                <label for="archivo" class="upload-zone" id="uploadZone">
+                                    <div class="upload-icon">📁</div>
+                                    <strong>Selecciona o arrastra tu archivo aquí</strong>
+                                    <span>Haz clic para buscarlo en tu equipo</span>
+
+                                    <input
+                                        type="file"
+                                        id="archivo"
+                                        name="archivo"
+                                        accept=".xlsx,.csv,.txt"
+                                        required
+                                    >
+                                </label>
+
+                                <div class="selected-file" id="selectedFile"></div>
+
+                                <div class="file-formats">
+                                    <span class="format-tag">EXCEL .XLSX</span>
+                                    <span class="format-tag">CSV</span>
+                                    <span class="format-tag">TXT</span>
+                                </div>
+
+                                <button type="submit" class="primary-action">
+                                    Validar archivo →
+                                </button>
+                            </form>
+
+                        </section>
+
+                        <aside class="import-card">
+
+                            <div class="card-heading">
+                                <div class="card-icon">ⓘ</div>
+                                <div>
+                                    <h2>Antes de importar</h2>
+                                    <p>Ten en cuenta estas indicaciones.</p>
+                                </div>
+                            </div>
+
+                            <div class="instructions-list">
+
+                                <div class="instruction-item">
+                                    <span class="instruction-number">1</span>
+                                    <div>
+                                        <strong>Prepara tus datos</strong>
+                                        <p>
+                                            La primera fila del archivo debe contener
+                                            los nombres de las columnas.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="instruction-item">
+                                    <span class="instruction-number">2</span>
+                                    <div>
+                                        <strong>Utiliza roles permitidos</strong>
+                                        <p>
+                                            Solo se aceptan los roles
+                                            Empleado y Administrador.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="instruction-item">
+                                    <span class="instruction-number">3</span>
+                                    <div>
+                                        <strong>Revisa los registros</strong>
+                                        <p>
+                                            El sistema comprobará los datos y
+                                            detectará correos y documentos duplicados.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="instruction-item">
+                                    <span class="instruction-number">4</span>
+                                    <div>
+                                        <strong>Confirma la importación</strong>
+                                        <p>
+                                            Los registros solo se guardarán
+                                            después de tu confirmación.
+                                        </p>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="limit-box">
+                                <strong> Límites del archivo</strong>
+                                <p>
+                                    Máximo 500 registros por archivo.
+                                    Tamaño máximo: 5 MB.
+                                </p>
+                            </div>
+
+                            <div class="columns-box">
+                                <h3>Columnas requeridas</h3>
+                                <div class="columns-code">
+                                    tipo_documento<br>
+                                    numero_documento<br>
+                                    primer_nombre<br>
+                                    segundo_nombre<br>
+                                    primer_apellido<br>
+                                    segundo_apellido<br>
+                                    username<br>
+                                    telefono<br>
+                                    correo<br>
+                                    rol<br>
+                                    estado<br>
+                                    contrasena
+                                </div>
+                            </div>
+
+                        </aside>
+
+                    </div>
+                {% endif %}
+
+            </div>
+        </main>
+
+    </div>
+</div>
+
+<script>
+    const inputArchivo = document.getElementById("archivo");
+    const zonaCarga = document.getElementById("uploadZone");
+    const archivoSeleccionado = document.getElementById("selectedFile");
+
+    if (inputArchivo && zonaCarga) {
+
+        inputArchivo.addEventListener("change", function () {
+            mostrarArchivo(this.files[0]);
+        });
+
+        function mostrarArchivo(archivo) {
+            if (!archivo) return;
+
+            archivoSeleccionado.textContent = "✓ Archivo seleccionado: " + archivo.name;
+            archivoSeleccionado.classList.add("visible");
+        }
+
+        zonaCarga.addEventListener("dragover", function (evento) {
+            evento.preventDefault();
+            zonaCarga.classList.add("dragging");
+        });
+
+        zonaCarga.addEventListener("dragleave", function () {
+            zonaCarga.classList.remove("dragging");
+        });
+
+        zonaCarga.addEventListener("drop", function (evento) {
+            evento.preventDefault();
+            zonaCarga.classList.remove("dragging");
+
+            const archivos = evento.dataTransfer.files;
+
+            if (archivos.length > 0) {
+                const transferencia = new DataTransfer();
+                transferencia.items.add(archivos[0]);
+                inputArchivo.files = transferencia.files;
+                mostrarArchivo(archivos[0]);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
